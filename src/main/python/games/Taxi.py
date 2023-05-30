@@ -1,12 +1,12 @@
 import gym
+from gym.wrappers import RecordEpisodeStatistics
 
 from src.main.python.games.Game import Game
-
 
 class Taxi(Game):
 
     def __init__(self, environment='Taxi-v3', discount_factor=0.9, learning_factor=0.1, iterations=1000):
-        super().__init__(gym.make(environment, render_mode='human'), discount_factor, learning_factor, iterations)
+        super().__init__(RecordEpisodeStatistics(gym.make(environment, render_mode='human')), discount_factor, learning_factor, iterations)
 
     # Resolución del entorno taxi utilizando Montecarlo IE
     def resolve_taxi_by_montecarlo(self):
