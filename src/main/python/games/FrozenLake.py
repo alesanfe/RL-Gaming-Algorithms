@@ -12,13 +12,13 @@ class FrozenLake(Game):
         super().__init__(gym.make(environment), discount_factor, learning_factor, iterations)
 
     # Resolución del entorno Frozen Lake utilizando Q-Learning
-    def resolve_by_q_learning(self, epsilon=0.1):
-        return super.resolve_by_q_learning(epsilon)
+    def resolve_frozen_lake_by_q_learning(self, epsilon=0.1):
+        return self.resolve_by_q_learning(epsilon)
 
     # Resolución del entorno Frozen Lake utilizando Sarsa
-    def resolve_by_sarsa(self, epsilon=0.1):
-        return super.resolve_by_sarsa(epsilon)
+    def resolve_frozen_lake_by_sarsa(self, epsilon=0.1, alpha=0.1, gamma=0.99):
+        return self.resolve_by_sarsa(epsilon, alpha, gamma)
 
     # Resolución del entorno Frozen Lake utilizando Double Q-Learning
-    def resolve_by_double_q_learning(self, epsilon=0.1):
-        return super.resolve_by_double_q_learning(epsilon)
+    def resolve_frozen_lake_by_double_q_learning(self, epsilon=0.1, alpha=0.1, gamma=0.99):
+        return self.resolve_by_double_q_learning(epsilon, alpha, gamma)
