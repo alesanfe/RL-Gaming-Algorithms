@@ -1,4 +1,5 @@
 import gym
+from gym.wrappers import RecordEpisodeStatistics
 
 from src.main.python.DoubleQLearning import DoubleQLearning
 from src.main.python.Sarsa import Sarsa
@@ -9,7 +10,7 @@ from src.main.python.games.Game import Game
 class FrozenLake(Game):
 
     def __init__(self, environment='FrozenLake-v1', discount_factor=0.9, learning_factor=0.1, iterations=1000):
-        super().__init__(gym.make(environment, render_mode='human'), discount_factor, learning_factor, iterations)
+        super().__init__(RecordEpisodeStatistics(gym.make(environment, render_mode='human')), discount_factor, learning_factor, iterations)
 
     # Resolución del entorno Frozen Lake utilizando Montecarlo con inicios exploratorios
     def resolve_frozen_lake_by_montecarlo(self):
