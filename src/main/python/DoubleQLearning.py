@@ -63,16 +63,3 @@ class DoubleQLearning:
 
         average_reward = total_reward / num_episodes
         print(f"Average reward over {num_episodes} episodes: {average_reward}")
-
-
-# Crear el entorno FrozenLake
-env = gym.make('FrozenLake-v0')
-
-# Crear una instancia de DoubleQLearning
-double_q_learning_agent = DoubleQLearning(env, alpha=0.1, gamma=0.99, epsilon=0.1)
-
-# Entrenar el agente
-double_q_learning_agent.train(num_episodes=10000)
-
-# Probar el agente entrenado
-double_q_learning_agent.test(num_episodes=100)
