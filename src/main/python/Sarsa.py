@@ -61,16 +61,3 @@ class Sarsa:
 
         average_reward = total_reward / num_episodes
         print(f"Average reward over {num_episodes} episodes: {average_reward}")
-
-
-# Crear el entorno FrozenLake
-env = gym.make('FrozenLake-v0')
-
-# Crear una instancia de Sarsa
-sarsa_agent = Sarsa(env, alpha=0.1, gamma=0.99, epsilon=0.1)
-
-# Entrenar el agente
-sarsa_agent.train(num_episodes=10000)
-
-# Probar el agente entrenado
-sarsa_agent.test(num_episodes=100)
