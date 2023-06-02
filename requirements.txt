@@ -1,2 +1,3 @@
-numpy
-gym
+numpy~=1.24.3
+gym~=0.26.2
+pygame~=2.4.0
