@@ -7,43 +7,52 @@ import pygame
 from pygame.surfarray import make_surface
 
 
-class GolfEnv(gym.Env):
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
-    def __init__(self, render_mode=None, width=10, height=15):
-        self.width = width  # Ancho del campo de golf
-        self.height = height  # Largo del campo de golf
-        self.min_force = 1  # Fuerza mínima para golpear la pelota
-        self.max_force = 8  # Fuerza máxima para golpear la pelota
-        self.palo1_min_force = 5  # Fuerza mínima para golpear la pelota con el palo 1
-        self.palo1_max_force = 8  # Fuerza máxima para golpear la pelota con el palo 1
-        self.palo2_min_force = 1  # Fuerza mínima para golpear la pelota con el palo 2
-        self.palo2_max_force = 3  # Fuerza máxima para golpear la pelota con el palo 2
-        self.directions = [np.array([dx, dy]) for dx in range(-1, 2) for dy in range(-1, 2) if dx != 0 and dy != 0]  # Direcciones posibles
-        self.field = np.zeros((width, height), dtype=int)  # Campo de golf representado como una matriz
-        self.target_location = np.array([2, self.height - 1])  # Posición del hoyo
-        self.agent_location = None  # Posición actual de la pelota
-        self.terminated = False  # Indica si el episodio ha terminado
-        self.origin = np.array([self.width, 0, 1, 2]).reshape(-1, 2)  # Posición inicial de la pelota
-        self.window_size = 512
-        assert render_mode is None or render_mode in self.metadata["render_modes"]
-        self.render_mode = render_mode
-        self.window = None
-        self.clock = None
-        self.obstacles = np.array([
-            [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
-            [1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5],
-            [2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5],
-            [3, 0], [3, 1], [3, 2], [3, 3], [3, 4],
-            [4, 0], [4, 1], [4, 2], [4, 3],
-            [5, 0], [5, 1], [5, 2],
+import random
+import pygame
+from pygame.surfarray import make_surface
+from dataclasses import dataclass
+from typing import Dict, List, DefaultDict
+import gym
+from gym import spaces
+import numpy as np
 
-            [9, 7], [9, 8], [9, 9], [9, 10], [9, 11], [9, 12], [9, 13], [9, 14],
-            [8, 7], [8, 8], [8, 9], [8, 10], [8, 11], [8, 12], [8, 13], [8, 14],
-            [7, 7], [7, 8], [7, 9], [7, 10], [7, 11], [7, 12], [7, 13], [7, 14],
-            [6, 7], [6, 8], [6, 9], [6, 10], [6, 11], [6, 12], [6, 13],
-            [5, 7], [5, 8], [5, 9], [5, 10], [5, 11], [5, 12],
-            [4, 7], [4, 8], [4, 9], [4, 10], [4, 11],
-        ])
+@dataclass
+class GolfEnv(gym.Env):
+    width: int = 10
+    height: int = 15
+    palo1_min_force: int = 5
+    palo1_max_force: int = 8
+    palo2_min_force: int = 1
+    palo2_max_force: int = 3
+    field: np.array = np.zeros((width, height), dtype=int)
+    target_location: np.array = np.array([2, height - 1])
+    agent_location: np.array = None
+    terminated: bool = False
+    origin: np.array = np.array([width, 0, 1, 2]).reshape(-1, 2)
+    window_size: int = 512
+    render_mode: str = "human"
+    window = None
+    clock = None
+    obstacles = np.array([
+        [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
+        [1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5],
+        [2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5],
+        [3, 0], [3, 1], [3, 2], [3, 3], [3, 4],
+        [4, 0], [4, 1], [4, 2], [4, 3],
+        [5, 0], [5, 1], [5, 2],
+        [9, 7], [9, 8], [9, 9], [9, 10], [9, 11], [9, 12], [9, 13], [9, 14],
+        [8, 7], [8, 8], [8, 9], [8, 10], [8, 11], [8, 12], [8, 13], [8, 14],
+        [7, 7], [7, 8], [7, 9], [7, 10], [7, 11], [7, 12], [7, 13], [7, 14],
+        [6, 7], [6, 8], [6, 9], [6, 10], [6, 11], [6, 12], [6, 13],
+        [5, 7], [5, 8], [5, 9], [5, 10], [5, 11], [5, 12],
+        [4, 7], [4, 8], [4, 9], [4, 10], [4, 11],
+    ])
+
+    def __post_init__(self):
+        self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
+        self.directions = [np.array([dx, dy]) for dx in range(-1, 2) for dy in range(-1, 2) if dx != 0 and dy != 0]
+
+        assert self.render_mode is None or self.render_mode in self.metadata["render_modes"]
 
         # Definición del espacio de observación
         self.observation_space = spaces.Dict({
@@ -53,8 +62,8 @@ class GolfEnv(gym.Env):
 
         # Definición del espacio de acción
         self.action_space = spaces.Tuple((
-            spaces.Discrete(2),  # Selección del palo (0 o 1)
-            spaces.Discrete(len(self.directions))  # Selección de la dirección (0 a 7)
+            spaces.Discrete(2), # Selección del palo (0 o 1)
+            spaces.Discrete(len(self.directions)) # Selección de la dirección (0 a 7)
         ))
 
     def reset(self):
