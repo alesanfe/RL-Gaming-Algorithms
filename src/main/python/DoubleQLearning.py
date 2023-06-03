@@ -23,27 +23,37 @@ class DoubleQLearning:
 
     def initialize_q_tables(self):
         """Inicializa las tablas Q con valores aleatorios."""
-        self.q1_table = np.zeros((self.env.observation_space.n, self.env.action_space.n))
-        self.q2_table = np.zeros((self.env.observation_space.n, self.env.action_space.n))
+        self.q1_table = np.random.uniform(low=0, high=1, size=(self.env.observation_space.n, self.env.action_space.n))
+        self.q2_table = np.random.uniform(low=0, high=1, size=(self.env.observation_space.n, self.env.action_space.n))
+        # Para el estado terminal, las acciones tienen valor 0
+        self.q1_table[self.env.observation_space.n - 1] = 0
+        self.q2_table[self.env.observation_space.n - 1] = 0
 
 
     def choose_action(self, state):
         """Elige una acción para un estado dado."""
         if np.random.uniform(0, 1) < self.epsilon:
-            action = self.env.action_space.sample()  # Acción aleatoria
+            action = self.env.action_space.sample()  # Acción aleatoria para exploración
         else:
-            q_values = self.q1_table[state] + self.q2_table[state]
-            action = np.argmax(q_values)  # Acción con mayor valor Q
+            action = self.get_action(state)  # Acción con mayor valor Q para explotación
         return action
 
     def update_q_tables(self, state, action, reward, next_state):
-        """Actualiza las tablas Q."""
+        """Actualiza las tablas Q utilizando el algoritmo Double Q-Learning."""
         if np.random.uniform(0, 1) < 0.5:
-            max_q_next = np.max(self.q1_table[next_state])
-            self.q1_table[state, action] += self.alpha * (reward + self.gamma * max_q_next - self.q1_table[state, action])
+            next_action = np.argmax(self.q1_table[next_state])
+            q_value = self.q1_table[state, action]
+            next_q_value = self.q2_table[next_state, next_action]
+            self.q1_table[state, action] = q_value + self.alpha * (reward + self.gamma * next_q_value - q_value)
         else:
-            max_q_next = np.max(self.q2_table[next_state])
-            self.q2_table[state, action] += self.alpha * (reward + self.gamma * max_q_next - self.q2_table[state, action])
+            next_action = np.argmax(self.q2_table[next_state])
+            q_value = self.q2_table[state, action]
+            next_q_value = self.q1_table[next_state, next_action]
+            self.q2_table[state, action] = q_value + self.alpha * (reward + self.gamma * next_q_value - q_value)
+
+    def get_action(self, state):
+        """Obtiene la acción óptima para un estado dado según las tablas Q aprendidas."""
+        return np.argmax(self.q1_table[state] + self.q2_table[state])
 
     def train(self, num_episodes):
         """Entrena el agente durante un número de episodios."""
