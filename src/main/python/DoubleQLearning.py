@@ -1,34 +1,29 @@
-import gym
+from dataclasses import dataclass, field
 import numpy as np
+from gym import Env
 
+@dataclass
 class DoubleQLearning:
     """Implementa el algoritmo Double Q-Learning."""
 
-    def __init__(self, env, alpha, gamma, epsilon):
-        """Crea una instancia del algoritmo.
+    env: Env
+    alpha: float
+    gamma: float
+    epsilon: float
+    q1_table: np.ndarray = field(init=False)
+    q2_table: np.ndarray = field(init=False)
 
-                Argumentos:
-                entorno -- un entorno implementado mediante la API de Gymnasium
-                           (se asume que tanto el espacio de estados como el de
-                            acciones son de tipo Discrete)
-                alpha -- un número real entre 0 y 1
-                gamma -- un número real mayor que 0 y menor o igual que 1
-                epsilon -- un número real entre 0 y 1
-                """
-        self.env = env
-        self.alpha = alpha
-        self.gamma = gamma
-        self.epsilon = epsilon
+    def __post_init__(self):
         self.initialize_q_tables()
 
     def initialize_q_tables(self):
         """Inicializa las tablas Q con valores aleatorios."""
+        # Crea las tablas Q con valores aleatorios en el rango [0, 1]
         self.q1_table = np.random.uniform(low=0, high=1, size=(self.env.observation_space.n, self.env.action_space.n))
         self.q2_table = np.random.uniform(low=0, high=1, size=(self.env.observation_space.n, self.env.action_space.n))
         # Para el estado terminal, las acciones tienen valor 0
         self.q1_table[self.env.observation_space.n - 1] = 0
         self.q2_table[self.env.observation_space.n - 1] = 0
-
 
     def choose_action(self, state):
         """Elige una acción para un estado dado."""
@@ -40,24 +35,28 @@ class DoubleQLearning:
 
     def update_q_tables(self, state, action, reward, next_state):
         """Actualiza las tablas Q utilizando el algoritmo Double Q-Learning."""
+        # Elige la siguiente acción y los valores Q correspondientes de las tablas Q
         if np.random.uniform(0, 1) < 0.5:
             next_action = np.argmax(self.q1_table[next_state])
             q_value = self.q1_table[state, action]
             next_q_value = self.q2_table[next_state, next_action]
+            # Actualiza el valor Q en la tabla q1_table usando el algoritmo Double Q-Learning
             self.q1_table[state, action] = q_value + self.alpha * (reward + self.gamma * next_q_value - q_value)
         else:
             next_action = np.argmax(self.q2_table[next_state])
             q_value = self.q2_table[state, action]
             next_q_value = self.q1_table[next_state, next_action]
+            # Actualiza el valor Q en la tabla q2_table usando el algoritmo Double Q-Learning
             self.q2_table[state, action] = q_value + self.alpha * (reward + self.gamma * next_q_value - q_value)
 
     def get_action(self, state):
         """Obtiene la acción óptima para un estado dado según las tablas Q aprendidas."""
+        # Retorna la acción con el mayor valor Q en la suma de las tablas q1_table y q2_table para el estado dado
         return np.argmax(self.q1_table[state] + self.q2_table[state])
 
     def train(self, num_episodes):
         """Entrena el agente durante un número de episodios."""
-        for episode in range(num_episodes):
+        for _ in range(num_episodes):
             state = self.env.reset()
 
             while True:
@@ -77,7 +76,7 @@ class DoubleQLearning:
         """Prueba el agente durante un número de episodios."""
         total_reward = 0
 
-        for episode in range(num_episodes):
+        for _ in range(num_episodes):
             state = self.env.reset()
             episode_reward = 0
 

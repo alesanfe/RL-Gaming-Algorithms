@@ -1,25 +1,19 @@
+from dataclasses import dataclass, field
 import gym
 import numpy as np
 
+@dataclass
 class Sarsa:
     """Implementa el algoritmo Sarsa."""
 
-    def __init__(self, env, alpha, gamma, epsilon):
-        """
-        Crea una instancia del algoritmo Sarsa.
+    env: gym.Env
+    alpha: float
+    gamma: float
+    epsilon: float
+    q_table: np.ndarray = field(init=False)
 
-        Argumentos:
-        env -- un entorno implementado mediante la API de Gymnasium
-               (se asume que tanto el espacio de estados como el de
-               acciones son de tipo Discrete)
-        alpha -- un número real entre 0 y 1 (tasa de aprendizaje)
-        gamma -- un número real mayor que 0 y menor o igual que 1 (factor de descuento)
-        epsilon -- un número real entre 0 y 1 (factor de exploración)
-        """
-        self.env = env
-        self.alpha = alpha
-        self.gamma = gamma
-        self.epsilon = epsilon
+    def __post_init__(self):
+        """Inicializa la tabla Q con valores aleatorios."""
         self.initialize_q_table()
 
     def initialize_q_table(self):
@@ -49,7 +43,7 @@ class Sarsa:
 
     def train(self, num_episodes):
         """Entrena el agente durante un número de episodios."""
-        for episode in range(num_episodes):
+        for _ in range(num_episodes):
             state = self.env.reset()
             action = self.choose_action(state)
 
@@ -71,7 +65,7 @@ class Sarsa:
         """Evalúa el agente durante un número de episodios."""
         total_reward = 0
 
-        for episode in range(num_episodes):
+        for _ in range(num_episodes):
             state = self.env.reset()
             episode_reward = 0
 
