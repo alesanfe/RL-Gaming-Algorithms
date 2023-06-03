@@ -1,9 +1,6 @@
 import gym
 from gym.wrappers import RecordEpisodeStatistics
 
-from src.main.python.DoubleQLearning import DoubleQLearning
-from src.main.python.Sarsa import Sarsa
-from src.main.python.aprendizaje_por_refuerzo import Montecarlo_IE, PolíticaEpsilonVoraz, Q_Learning
 from src.main.python.games.Game import Game
 
 
