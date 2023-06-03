@@ -1,32 +1,32 @@
-import gym
+from dataclasses import dataclass
 
 import time
+
+from gym import Env
+
 from src.main.python.DoubleQLearning import DoubleQLearning
 from src.main.python.Sarsa import Sarsa
 from src.main.python.aprendizaje_por_refuerzo import Montecarlo_IE, PolíticaEpsilonVoraz, Q_Learning
 
 
+@dataclass
 class Game:
+    environment: Env
+    discount_factor: float
+    learning_factor: float
+    iterations: int
+    time: float = 0
 
-    def __init__(self, environment, discount_factor, learning_factor, iterations):
-        self.environment = environment
-        self.discount_factor = discount_factor
-        self.learning_factor = learning_factor
-        self.iterations = iterations
-        self.time = 0
-
-
-
-    # Resolución del entorno utilizando Montecarlo con inicios exploratorios
     def resolve_by_montecarlo(self):
+        """Resolución del entorno utilizando Montecarlo con inicios exploratorios."""
         self.time = time.time()
         agent = Montecarlo_IE(self.environment, self.discount_factor)
         agent.entrena(self.iterations)
         self.time = time.time() - self.time
         return agent
 
-    # Resolución del entorno utilizando Q-Learning
     def resolve_by_q_learning(self, epsilon):
+        """Resolución del entorno utilizando Q-Learning"""
         self.time = time.time()
         export_policy = PolíticaEpsilonVoraz(epsilon)
         agent = Q_Learning(self.environment, self.discount_factor, self.learning_factor, export_policy)
@@ -34,8 +34,8 @@ class Game:
         self.time = time.time() - self.time
         return agent
 
-    # Resolución del entorno utilizando Sarsa
     def resolve_by_sarsa(self, epsilon, alpha, gamma):
+        """Resolución del entorno utilizando Sarsa."""
         self.time = time.time()
         export_policy = PolíticaEpsilonVoraz(epsilon)
         agent = Sarsa(self.environment, alpha, gamma, export_policy)
@@ -43,8 +43,8 @@ class Game:
         self.time = time.time()
         return agent
 
-    # Resolución del entorno utilizando Double Q-Learning
     def resolve_by_double_q_learning(self, epsilon, alpha, gamma):
+        """Resolución del entorno utilizando Double Q-Learning."""
         self.time = time.time()
         export_policy = PolíticaEpsilonVoraz(epsilon)
         agent = DoubleQLearning(self.environment, alpha, gamma, export_policy)
@@ -53,6 +53,7 @@ class Game:
         return agent
 
     def print_stats(self):
+        """Imprime las estadísticas del entorno."""
         print("Tiempo de ejecución: " + str(self.time) + " segundos")
         stats = self.environment.get_stats()
         print("Recompensa media: " + str(stats['mean_reward']) + " +/- " + str(stats['reward_std']))
