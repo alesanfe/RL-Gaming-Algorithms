@@ -5,7 +5,6 @@ import time
 import gym
 from gym import Env
 
-from src.main.python.DoubleQLearning import DoubleQLearning
 from src.main.python.Sarsa import Sarsa
 from src.main.python.aprendizaje_por_refuerzo import Montecarlo_IE, PolíticaEpsilonVoraz, Q_Learning
 
@@ -17,6 +16,7 @@ class Game:
     learning_factor: float
     iterations: int
     time: float = 0
+    agent = None
 
     def resolve_by_montecarlo(self):
         """Resolución del entorno utilizando Montecarlo con inicios exploratorios."""
@@ -24,6 +24,7 @@ class Game:
         agent = Montecarlo_IE(self.environment, self.discount_factor)
         agent.entrena(self.iterations)
         self.time = time.time() - self.time
+        self.agent = agent
         return agent
 
     def resolve_by_q_learning(self, epsilon):
@@ -33,6 +34,7 @@ class Game:
         agent = Q_Learning(self.environment, self.discount_factor, self.learning_factor, export_policy)
         agent.entrena(self.iterations)
         self.time = time.time() - self.time
+        self.agent = agent
         return agent
 
     def resolve_by_sarsa(self, epsilon, alpha, gamma):
@@ -42,37 +44,24 @@ class Game:
         agent = Sarsa(self.environment, alpha, gamma, export_policy)
         agent.train(self.iterations)
         self.time = time.time()
-        return agent
-
-    def resolve_by_double_q_learning(self, epsilon, alpha, gamma):
-        """Resolución del entorno utilizando Double Q-Learning."""
-        self.time = time.time()
-        export_policy = PolíticaEpsilonVoraz(epsilon)
-        agent = DoubleQLearning(self.environment, alpha, gamma, export_policy)
-        agent.train(self.iterations)
-        self.time = time.time() - self.time
+        self.agent = agent
         return agent
 
     def print_stats(self):
         """Imprime las estadísticas del entorno."""
         print("Tiempo de ejecución: " + str(self.time) + " segundos")
-        stats = self.environment.get_stats()
+        stats = self.agent.calculate_statistics()
         print("Recompensa media: " + str(stats['mean_reward']) + " +/- " + str(stats['reward_std']))
         print("Longitud media de episodios: " + str(stats['mean_length']) + " +/- " + str(stats['length_std']))
         print("Número de episodios: " + str(stats['num_episodes']))
         print("Máxima recompensa alcanzada: " + str(stats['max_reward']))
         print("Mínima recompensa alcanzada: " + str(stats['min_reward']))
-        print("Recompensa en el último episodio: " + str(stats['last_episode_reward']))
-        print("Longitud del último episodio: " + str(stats['last_episode_length']))
         print("Episodios completados exitosamente: " + str(stats['num_success_episodes']))
-        print("Episodios terminados por tiempo límite: " + str(stats['num_time_limit_episodes']))
-        print("Episodios terminados por límite de pasos: " + str(stats['num_step_limit_episodes']))
-        print("Episodios terminados por límite de tiempo y pasos: " + str(stats['num_time_step_limit_episodes']))
         print("Porcentaje de éxito: " + str(stats['success_rate']) + "%")
         print("Promedio de recompensa de los episodios exitosos: " + str(stats['mean_success_reward']))
         print("Promedio de recompensa de los episodios fallidos: " + str(stats['mean_failed_reward']))
 
-    def compare_different_algorithms(self, algorithms=['Montecarlo', 'Q-Learning', 'Sarsa', 'Double Q-Learning'], epsilon=0.1, alpha=0.1, gamma=0.9):
+    def compare_different_algorithms(self, algorithms=['Montecarlo', 'Q-Learning', 'Sarsa'], epsilon=0.1, alpha=0.1, gamma=0.9):
         results = {}
         for alg in algorithms:
             if alg == 'Montecarlo':
@@ -84,9 +73,6 @@ class Game:
             elif alg == 'Sarsa':
                 agent_sarsa = self.resolve_by_sarsa(epsilon, alpha, gamma)
                 results[alg] = agent_sarsa.env
-            elif alg == 'Double Q-Learning':
-                agent_double_q_learning = self.resolve_by_double_q_learning(epsilon, alpha, gamma)
-                results[alg] = agent_double_q_learning.env
             else:
                 raise ValueError("Algoritmo no encontrado")
             print(f"\nAlgoritmo {alg}:")
@@ -119,9 +105,6 @@ class Game:
                     elif algorithm == 'Sarsa':
                         agent_sarsa = self.resolve_by_sarsa(eps, alp, gam)
                         results[key] = agent_sarsa.env
-                    elif algorithm == 'Double Q-Learning':
-                        agent_double_q_learning = self.resolve_by_double_q_learning(eps, alp, gam)
-                        results[key] = agent_double_q_learning.env
                     else:
                         raise ValueError("Algoritmo no encontrado")
                     print(f"\nCaso -º {key}:")
@@ -138,9 +121,10 @@ class Game:
         print("Mejor caso por máxima recompensa alcanzada: " + max(results, key=lambda x: results[x].get_stats()['max_reward']))
         print("Mejor caso por mínima recompensa alcanzada: " + max(results, key=lambda x: results[x].get_stats()['min_reward']))
 
-    def compare_diffrent_environments(self, envireonments, algorithm='Montecarlo', epsilon=0.1, alpha=0.1, gamma=0.9):
+
+    def compare_diffrent_environments(self, environments, algorithm='Montecarlo', epsilon=0.1, alpha=0.1, gamma=0.9):
         results = {}
-        for env in envireonments:
+        for env in environments:
             print("\n" + env + "\n")
             if env == 'FrozenLake-v0':
                 self.environment = gym.make(env)
@@ -157,9 +141,6 @@ class Game:
             elif algorithm == 'Sarsa':
                 agent_sarsa = self.resolve_by_sarsa(epsilon, alpha, gamma)
                 results[env] = agent_sarsa.env
-            elif algorithm == 'Double Q-Learning':
-                agent_double_q_learning = self.resolve_by_double_q_learning(epsilon, alpha, gamma)
-                results[env] = agent_double_q_learning.env
             else:
                 raise ValueError("Algoritmo no encontrado")
             print(f"\nEntorno {env}:")

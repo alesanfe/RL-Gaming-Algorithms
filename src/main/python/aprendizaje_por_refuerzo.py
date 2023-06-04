@@ -176,6 +176,48 @@ class Montecarlo_IE:
         for episodio in range(número_episodios):
             self.ejecuta_episodio()
 
+    def calculate_statistics(self):
+        """Calcula las estadísticas a partir de los datos de los episodios."""
+        num_episodes = len(self.tabla_r)
+        cumulative_rewards = []
+        episode_lengths = []
+
+        for state in self.tabla_r:
+            for action in range(self.entorno.action_space.n):
+                returns = self.tabla_r[state][action]
+                cumulative_rewards.extend(returns)
+                episode_lengths.append(len(returns))
+
+        mean_reward = numpy.mean(cumulative_rewards)
+        reward_std = numpy.std(cumulative_rewards)
+        mean_length = numpy.mean(episode_lengths)
+        length_std = numpy.std(episode_lengths)
+        max_reward = numpy.max(cumulative_rewards)
+        min_reward = numpy.min(cumulative_rewards)
+        num_success_episodes = len([reward for reward in cumulative_rewards if reward > 0])
+        success_rate = (num_success_episodes / num_episodes) * 100
+
+        success_rewards = [reward for reward in cumulative_rewards if reward > 0]
+        failed_rewards = [reward for reward in cumulative_rewards if reward <= 0]
+        mean_success_reward = numpy.mean(success_rewards) if success_rewards else None
+        mean_failed_reward = numpy.mean(failed_rewards) if failed_rewards else None
+
+        statistics = {
+            'mean_reward': mean_reward,
+            'reward_std': reward_std,
+            'mean_length': mean_length,
+            'length_std': length_std,
+            'num_episodes': num_episodes,
+            'max_reward': max_reward,
+            'min_reward': min_reward,
+            'num_success_episodes': num_success_episodes,
+            'success_rate': success_rate,
+            'mean_success_reward': mean_success_reward,
+            'mean_failed_reward': mean_failed_reward
+        }
+
+        return statistics
+
 
 class Q_Learning:
     """Implementa el algoritmo Q-learning."""
@@ -261,6 +303,9 @@ class Q_Learning:
         del entorno hasta que se obtenga la señal de terminación o de truncado.
         """
         estado_actual, info = self.entorno.reset()
+        recompensa_episodio = 0
+        longitud_episodio = 0
+
         while True:
             acción = self.elige_acción(estado_actual, info)
             estado_siguiente, recompensa, terminado, truncado, info = (
@@ -269,7 +314,15 @@ class Q_Learning:
             self.actualiza_tabla_q(
                 estado_actual, acción, recompensa, estado_siguiente
             )
+
+            recompensa_episodio += recompensa
+            longitud_episodio += 1
+
             if terminado or truncado:
+                self.datos_episodio['episodes'].append(
+                    {'cumulative_reward': recompensa, 'episode_length': longitud_episodio})
+                self.datos_episodio['total']['cumulative_rewards'] += recompensa_episodio
+                self.datos_episodio['total']['episode_lengths'].append(longitud_episodio)
                 break
             estado_actual = estado_siguiente
 
@@ -280,5 +333,42 @@ class Q_Learning:
         número_episodios -- entero no negativo que establece el número de
                             episodios a entrenar
         """
+        self.datos_episodio = {'total': {'cumulative_rewards': 0, 'episode_lengths': []}, 'episodes': []}
         for episodio in range(número_episodios):
             self.ejecuta_episodio()
+
+    def calculate_statistics(self):
+        """Calcula las estadísticas a partir de los datos de los episodios."""
+        num_episodes = len(self.datos_episodio['episodes'])
+        cumulative_rewards = [episode_data['cumulative_reward'] for episode_data in self.datos_episodio['episodes']]
+        episode_lengths = [episode_data['episode_length'] for episode_data in self.datos_episodio['episodes']]
+
+        mean_reward = numpy.mean(cumulative_rewards)
+        reward_std = numpy.std(cumulative_rewards)
+        mean_length = numpy.mean(episode_lengths)
+        length_std = numpy.std(episode_lengths)
+        max_reward = numpy.max(cumulative_rewards)
+        min_reward = numpy.min(cumulative_rewards)
+        num_success_episodes = len([reward for reward in cumulative_rewards if reward > 0])
+        success_rate = (num_success_episodes / num_episodes) * 100
+
+        success_rewards = [reward for reward in cumulative_rewards if reward > 0]
+        failed_rewards = [reward for reward in cumulative_rewards if reward <= 0]
+        mean_success_reward = numpy.mean(success_rewards)
+        mean_failed_reward = numpy.mean(failed_rewards)
+
+        statistics = {
+            'mean_reward': mean_reward,
+            'reward_std': reward_std,
+            'mean_length': mean_length,
+            'length_std': length_std,
+            'num_episodes': num_episodes,
+            'max_reward': max_reward,
+            'min_reward': min_reward,
+            'num_success_episodes': num_success_episodes,
+            'success_rate': success_rate,
+            'mean_success_reward': mean_success_reward,
+            'mean_failed_reward': mean_failed_reward
+        }
+
+        return statistics
