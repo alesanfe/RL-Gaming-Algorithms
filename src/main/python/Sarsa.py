@@ -68,12 +68,14 @@ class Sarsa:
         del entorno hasta que se obtenga la señal de terminación o de truncado.
         """
         current_state, info = self.env.reset()
+        self.env.render()
         episode_reward = 0
         episode_length = 0
 
         while True:
             action = self.choose_action(current_state, info)
             next_state, reward, truncated, done, info = self.env.step(action)
+            self.env.render()
             next_action = self.choose_action(next_state, info)
 
             self.update_q_table(current_state, action, reward, next_state, next_action)
@@ -131,7 +133,8 @@ class Sarsa:
             'num_success_episodes': num_success_episodes,
             'success_rate': success_rate,
             'mean_success_reward': mean_success_reward,
-            'mean_failed_reward': mean_failed_reward
+            'mean_failed_reward': mean_failed_reward,
+            'time': self.env.time
         }
 
         return statistics

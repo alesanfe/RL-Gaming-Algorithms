@@ -142,6 +142,7 @@ class Montecarlo_IE:
         recompensas = []
         # El estado inicial es aleatorio
         estado_actual, info = self.entorno.reset()
+
         # La acción inicial es aleatoria
         acción = self.entorno.action_space.sample()
         while True:

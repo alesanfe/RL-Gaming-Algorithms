@@ -66,28 +66,28 @@ class Game:
         for alg in algorithms:
             if alg == 'Montecarlo':
                 agent_montecarlo = self.resolve_by_montecarlo()
-                results[alg] = agent_montecarlo.entorno
+                results[alg] = agent_montecarlo.calculate_statistics()
             elif alg == 'Q-Learning':
                 agent_q_learning = self.resolve_by_q_learning(epsilon)
-                results[alg] = agent_q_learning.entorno
+                results[alg] = agent_q_learning.calculate_statistics()
             elif alg == 'Sarsa':
                 agent_sarsa = self.resolve_by_sarsa(epsilon, alpha, gamma)
-                results[alg] = agent_sarsa.env
+                results[alg] = agent_sarsa.calculate_statistics()
             else:
                 raise ValueError("Algoritmo no encontrado")
             print(f"\nAlgoritmo {alg}:")
             self.print_stats()
         # A partir de results, obtener el mejor en cada uno
         print("\nComparación de algoritmos:\n")
-        print("Mejor algoritmo por recompensa media: " + max(results, key=lambda x: results[x].get_stats()['mean_reward']))
-        print("Mejor algoritmo por longitud media de episodios: " + min(results, key=lambda x: results[x].get_stats()['mean_length']))
-        print("Mejor algoritmo por porcentaje de éxito: " + max(results, key=lambda x: results[x].get_stats()['success_rate']))
-        print("Mejor algoritmo por promedio de recompensa de los episodios exitosos: " + max(results, key=lambda x: results[x].get_stats()['mean_success_reward']))
-        print("Mejor algoritmo por promedio de recompensa de los episodios fallidos: " + min(results, key=lambda x: results[x].get_stats()['mean_failed_reward']))
-        print("Mejor algoritmo por tiempo de ejecución: " + min(results, key=lambda x: results[x].get_stats()['time']))
-        print("Mejor algoritmo por número de episodios: " + min(results, key=lambda x: results[x].get_stats()['num_episodes']))
-        print("Mejor algoritmo por máxima recompensa alcanzada: " + max(results, key=lambda x: results[x].get_stats()['max_reward']))
-        print("Mejor algoritmo por mínima recompensa alcanzada: " + max(results, key=lambda x: results[x].get_stats()['min_reward']))
+        print("Mejor algoritmo por recompensa media: " + max(results, key=lambda x: results[x]['mean_reward']))
+        print("Mejor algoritmo por longitud media de episodios: " + min(results, key=lambda x: results[x]['mean_length']))
+        print("Mejor algoritmo por porcentaje de éxito: " + max(results, key=lambda x: results[x]['success_rate']))
+        print("Mejor algoritmo por promedio de recompensa de los episodios exitosos: " + max(results, key=lambda x: results[x]['mean_success_reward']))
+        print("Mejor algoritmo por promedio de recompensa de los episodios fallidos: " + min(results, key=lambda x: results[x]['mean_failed_reward']))
+        print("Mejor algoritmo por tiempo de ejecución: " + min(results, key=lambda x: results[x]['time']))
+        print("Mejor algoritmo por número de episodios: " + min(results, key=lambda x: results[x]['num_episodes']))
+        print("Mejor algoritmo por máxima recompensa alcanzada: " + max(results, key=lambda x: results[x]['max_reward']))
+        print("Mejor algoritmo por mínima recompensa alcanzada: " + max(results, key=lambda x: results[x]['min_reward']))
 
     def compare_different_cases(self, algorithm='Montecarlo', epsilon=[0.1, 0.2, 0.3, 0.4, 0.5], alpha=[0.1, 0.2, 0.3, 0.4, 0.5], gamma=[0.9, 0.8, 0.7, 0.6, 0.5]):
         results = {}
@@ -98,28 +98,28 @@ class Game:
                     key = "Epsilon: " + str(eps) + " - Alpha: " + str(alp) + " - Gamma: " + str(gam)
                     if algorithm == 'Montecarlo':
                         agent_montecarlo = self.resolve_by_montecarlo()
-                        results[key] = agent_montecarlo.entorno
+                        results[key] = agent_montecarlo.calculate_statistics()
                     elif algorithm == 'Q-Learning':
                         agent_q_learning = self.resolve_by_q_learning(eps)
-                        results[key] = agent_q_learning.entorno
+                        results[key] = agent_q_learning.calculate_statistics()
                     elif algorithm == 'Sarsa':
                         agent_sarsa = self.resolve_by_sarsa(eps, alp, gam)
-                        results[key] = agent_sarsa.env
+                        results[key] = agent_sarsa.calculate_statistics()
                     else:
                         raise ValueError("Algoritmo no encontrado")
                     print(f"\nCaso -º {key}:")
                     self.print_stats()
         # A partir de results, obtener el mejor en cada uno
         print("\nComparación de casos:\n")
-        print("Mejor caso por recompensa media: " + max(results, key=lambda x: results[x].get_stats()['mean_reward']))
+        print("Mejor caso por recompensa media: " + max(results, key=lambda x: results[x]['mean_reward']))
         print("Mejor caso por longitud media de episodios: " + min(results, key=lambda x: results[x].get_stats()['mean_length']))
         print("Mejor caso por porcentaje de éxito: " + max(results, key=lambda x: results[x].get_stats()['success_rate']))
-        print("Mejor caso por promedio de recompensa de los episodios exitosos: " + max(results, key=lambda x: results[x].get_stats()['mean_success_reward']))
-        print("Mejor caso por promedio de recompensa de los episodios fallidos: " + min(results, key=lambda x: results[x].get_stats()['mean_failed_reward']))
-        print("Mejor caso por tiempo de ejecución: " + min(results, key=lambda x: results[x].get_stats()['time']))
-        print("Mejor caso por número de episodios: " + min(results, key=lambda x: results[x].get_stats()['num_episodes']))
-        print("Mejor caso por máxima recompensa alcanzada: " + max(results, key=lambda x: results[x].get_stats()['max_reward']))
-        print("Mejor caso por mínima recompensa alcanzada: " + max(results, key=lambda x: results[x].get_stats()['min_reward']))
+        print("Mejor caso por promedio de recompensa de los episodios exitosos: " + max(results, key=lambda x: results[x]['mean_success_reward']))
+        print("Mejor caso por promedio de recompensa de los episodios fallidos: " + min(results, key=lambda x: results[x]['mean_failed_reward']))
+        print("Mejor caso por tiempo de ejecución: " + min(results, key=lambda x: results[x]['time']))
+        print("Mejor caso por número de episodios: " + min(results, key=lambda x: results[x]['num_episodes']))
+        print("Mejor caso por máxima recompensa alcanzada: " + max(results, key=lambda x: results[x]['max_reward']))
+        print("Mejor caso por mínima recompensa alcanzada: " + max(results, key=lambda x: results[x]['min_reward']))
 
 
     def compare_diffrent_environments(self, environments, algorithm='Montecarlo', epsilon=0.1, alpha=0.1, gamma=0.9):
@@ -127,34 +127,34 @@ class Game:
         for env in environments:
             print("\n" + env + "\n")
             if env == 'FrozenLake-v0':
-                self.environment = gym.make(env)
+                self.environment = gym.make(env, render_mode='human')
             elif env == 'Taxi-v3':
-                self.environment = gym.make(env)
+                self.environment = gym.make(env, render_mode='human')
             else:
                 raise ValueError("Entorno no encontrado")
             if algorithm == 'Montecarlo':
                 agent_montecarlo = self.resolve_by_montecarlo()
-                results[env] = agent_montecarlo.entorno
+                results[env] = agent_montecarlo.calculate_statistics()
             elif algorithm == 'Q-Learning':
                 agent_q_learning = self.resolve_by_q_learning(epsilon)
-                results[env] = agent_q_learning.entorno
+                results[env] = agent_q_learning.calculate_statistics()
             elif algorithm == 'Sarsa':
                 agent_sarsa = self.resolve_by_sarsa(epsilon, alpha, gamma)
-                results[env] = agent_sarsa.env
+                results[env] = agent_sarsa.calculate_statistics()
             else:
                 raise ValueError("Algoritmo no encontrado")
             print(f"\nEntorno {env}:")
             self.print_stats()
         # A partir de results, obtener el mejor en cada uno
         print("\nComparación de entornos:\n")
-        print("Mejor entorno por recompensa media: " + max(results, key=lambda x: results[x].get_stats()['mean_reward']))
-        print("Mejor entorno por longitud media de episodios: " + min(results, key=lambda x: results[x].get_stats()['mean_length']))
-        print("Mejor entorno por porcentaje de éxito: " + max(results, key=lambda x: results[x].get_stats()['success_rate']))
-        print("Mejor entorno por promedio de recompensa de los episodios exitosos: " + max(results, key=lambda x: results[x].get_stats()['mean_success_reward']))
-        print("Mejor entorno por promedio de recompensa de los episodios fallidos: " + min(results, key=lambda x: results[x].get_stats()['mean_failed_reward']))
-        print("Mejor entorno por tiempo de ejecución: " + min(results, key=lambda x: results[x].get_stats()['time']))
-        print("Mejor entorno por número de episodios: " + min(results, key=lambda x: results[x].get_stats()['num_episodes']))
-        print("Mejor entorno por máxima recompensa alcanzada: " + max(results, key=lambda x: results[x].get_stats()['max_reward']))
-        print("Mejor entorno por mínima recompensa alcanzada: " + max(results, key=lambda x: results[x].get_stats()['min_reward']))
+        print("Mejor entorno por recompensa media: " + max(results, key=lambda x: results[x]['mean_reward']))
+        print("Mejor entorno por longitud media de episodios: " + min(results, key=lambda x: results[x]['mean_length']))
+        print("Mejor entorno por porcentaje de éxito: " + max(results, key=lambda x: results[x]['success_rate']))
+        print("Mejor entorno por promedio de recompensa de los episodios exitosos: " + max(results, key=lambda x: results[x]['mean_success_reward']))
+        print("Mejor entorno por promedio de recompensa de los episodios fallidos: " + min(results, key=lambda x: results[x]['mean_failed_reward']))
+        print("Mejor entorno por tiempo de ejecución: " + min(results, key=lambda x: results[x]['time']))
+        print("Mejor entorno por número de episodios: " + min(results, key=lambda x: results[x]['num_episodes']))
+        print("Mejor entorno por máxima recompensa alcanzada: " + max(results, key=lambda x: results[x]['max_reward']))
+        print("Mejor entorno por mínima recompensa alcanzada: " + max(results, key=lambda x: results[x]['min_reward']))
 
 
