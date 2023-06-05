@@ -119,8 +119,8 @@ class Sarsa:
 
         success_rewards = [reward for reward in cumulative_rewards if reward > 0]
         failed_rewards = [reward for reward in cumulative_rewards if reward <= 0]
-        mean_success_reward = numpy.mean(success_rewards)
-        mean_failed_reward = numpy.mean(failed_rewards)
+        mean_success_reward = numpy.mean(success_rewards) if success_rewards != [] else 0
+        mean_failed_reward = numpy.mean(failed_rewards) if failed_rewards != [] else 0
 
         statistics = {
             'mean_reward': mean_reward,
