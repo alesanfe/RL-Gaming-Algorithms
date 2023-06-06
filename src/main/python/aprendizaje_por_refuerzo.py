@@ -2,6 +2,8 @@ import random
 import numpy
 from collections import defaultdict
 
+from src.main.python.environment_statistic import EnvironmentStatistic
+
 
 class PolíticaVoraz:
     """Implementa una política voraz sobre el valor de pares estado-acción."""
@@ -96,6 +98,7 @@ class Montecarlo_IE:
         self.factor_de_descuento = factor_de_descuento
         self.primera_visita = primera_visita
         self.política_exploratoria = PolíticaVoraz()
+        self.statistics = EnvironmentStatistic()
         self.inicializa_tablas_q_y_r()
 
     def inicializa_tablas_q_y_r(self):
@@ -140,6 +143,9 @@ class Montecarlo_IE:
         """
         pares_estado_acción = []
         recompensas = []
+
+        self.statistics.reset_episode()
+
         # El estado inicial es aleatorio
         estado_actual, info = self.entorno.reset()
 
@@ -151,7 +157,11 @@ class Montecarlo_IE:
                 self.entorno.step(acción)
             )
             recompensas.append(recompensa)
+
+            self.statistics.continue_episode(recompensa)
+
             if terminado or truncado:
+                self.statistics.add_episode()
                 break
             estado_actual = estado_siguiente
             acción = self.elige_acción(estado_actual, info)
@@ -174,6 +184,7 @@ class Montecarlo_IE:
         número_episodios -- entero no negativo que establece el número de
                             episodios a entrenar
         """
+        self.statistics.reset()
         for episodio in range(número_episodios):
             self.ejecuta_episodio()
 
@@ -244,6 +255,7 @@ class Q_Learning:
         self.tasa_de_aprendizaje = tasa_de_aprendizaje
         self.factor_de_descuento = factor_de_descuento
         self.política_exploratoria = política_exploratoria
+        self.statistics = EnvironmentStatistic()
         self.inicializa_tabla_q()
 
     def inicializa_tabla_q(self):
@@ -304,8 +316,7 @@ class Q_Learning:
         del entorno hasta que se obtenga la señal de terminación o de truncado.
         """
         estado_actual, info = self.entorno.reset()
-        recompensa_episodio = 0
-        longitud_episodio = 0
+        self.statistics.reset_episode()
 
         while True:
             acción = self.elige_acción(estado_actual, info)
@@ -316,15 +327,12 @@ class Q_Learning:
                 estado_actual, acción, recompensa, estado_siguiente
             )
 
-            recompensa_episodio += recompensa
-            longitud_episodio += 1
+            self.statistics.continue_episode(recompensa)
 
             if terminado or truncado:
-                self.datos_episodio['episodes'].append(
-                    {'cumulative_reward': recompensa, 'episode_length': longitud_episodio})
-                self.datos_episodio['total']['cumulative_rewards'] += recompensa_episodio
-                self.datos_episodio['total']['episode_lengths'].append(longitud_episodio)
+                self.statistics.add_episode()
                 break
+
             estado_actual = estado_siguiente
 
     def entrena(self, número_episodios):
@@ -334,42 +342,10 @@ class Q_Learning:
         número_episodios -- entero no negativo que establece el número de
                             episodios a entrenar
         """
-        self.datos_episodio = {'total': {'cumulative_rewards': 0, 'episode_lengths': []}, 'episodes': []}
-        for episodio in range(número_episodios):
+        self.statistics.reset()
+        for _ in range(número_episodios):
             self.ejecuta_episodio()
 
     def calculate_statistics(self):
         """Calcula las estadísticas a partir de los datos de los episodios."""
-        num_episodes = len(self.datos_episodio['episodes'])
-        cumulative_rewards = [episode_data['cumulative_reward'] for episode_data in self.datos_episodio['episodes']]
-        episode_lengths = [episode_data['episode_length'] for episode_data in self.datos_episodio['episodes']]
-
-        mean_reward = numpy.mean(cumulative_rewards)
-        reward_std = numpy.std(cumulative_rewards)
-        mean_length = numpy.mean(episode_lengths)
-        length_std = numpy.std(episode_lengths)
-        max_reward = numpy.max(cumulative_rewards)
-        min_reward = numpy.min(cumulative_rewards)
-        num_success_episodes = len([reward for reward in cumulative_rewards if reward > 0])
-        success_rate = (num_success_episodes / num_episodes) * 100
-
-        success_rewards = [reward for reward in cumulative_rewards if reward > 0]
-        failed_rewards = [reward for reward in cumulative_rewards if reward <= 0]
-        mean_success_reward = numpy.mean(success_rewards) if success_rewards != [] else 0
-        mean_failed_reward = numpy.mean(failed_rewards) if failed_rewards != [] else 0
-
-        statistics = {
-            'mean_reward': mean_reward,
-            'reward_std': reward_std,
-            'mean_length': mean_length,
-            'length_std': length_std,
-            'num_episodes': num_episodes,
-            'max_reward': max_reward,
-            'min_reward': min_reward,
-            'num_success_episodes': num_success_episodes,
-            'success_rate': success_rate,
-            'mean_success_reward': mean_success_reward,
-            'mean_failed_reward': mean_failed_reward
-        }
-
-        return statistics
+        return self.statistics.calculate_statistics()

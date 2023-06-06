@@ -1,7 +1,7 @@
 import gym
 from gym.wrappers import RecordEpisodeStatistics
 
-from src.main.python.games.Game import Game
+from src.main.python.games.game import Game
 
 # ---------------------- #
 # Test para Frozen Lake. #

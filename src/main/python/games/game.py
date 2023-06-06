@@ -5,7 +5,7 @@ import time
 import gym
 from gym import Env
 
-from src.main.python.Sarsa import Sarsa
+from src.main.python.sarsa import Sarsa
 from src.main.python.aprendizaje_por_refuerzo import Montecarlo_IE, PolíticaEpsilonVoraz, Q_Learning
 
 
@@ -60,6 +60,7 @@ class Game:
         print("Porcentaje de éxito: " + str(stats['success_rate']) + "%")
         print("Promedio de recompensa de los episodios exitosos: " + str(stats['mean_success_reward']))
         print("Promedio de recompensa de los episodios fallidos: " + str(stats['mean_failed_reward']))
+        print("Tiempo de ejecución: " + str(stats['time']) + " segundos")
 
     def compare_different_algorithms(self, algorithms=['Montecarlo', 'Q-Learning', 'Sarsa'], epsilon=0.1, alpha=0.1, gamma=0.9):
         results = {}
@@ -88,6 +89,7 @@ class Game:
         print("Mejor algoritmo por número de episodios: " + min(results, key=lambda x: results[x]['num_episodes']))
         print("Mejor algoritmo por máxima recompensa alcanzada: " + max(results, key=lambda x: results[x]['max_reward']))
         print("Mejor algoritmo por mínima recompensa alcanzada: " + max(results, key=lambda x: results[x]['min_reward']))
+        print("Menor tiempo de ejecución: " + min(results, key=lambda x: results[x]['time']))
 
     def compare_different_cases(self, algorithm='Montecarlo', epsilon=[0.1, 0.2, 0.3, 0.4, 0.5], alpha=[0.1, 0.2, 0.3, 0.4, 0.5], gamma=[0.9, 0.8, 0.7, 0.6, 0.5]):
         results = {}
@@ -107,19 +109,19 @@ class Game:
                         results[key] = agent_sarsa.calculate_statistics()
                     else:
                         raise ValueError("Algoritmo no encontrado")
-                    print(f"\nCaso -º {key}:")
-                    self.print_stats()
         # A partir de results, obtener el mejor en cada uno
         print("\nComparación de casos:\n")
         print("Mejor caso por recompensa media: " + max(results, key=lambda x: results[x]['mean_reward']))
-        print("Mejor caso por longitud media de episodios: " + min(results, key=lambda x: results[x].get_stats()['mean_length']))
-        print("Mejor caso por porcentaje de éxito: " + max(results, key=lambda x: results[x].get_stats()['success_rate']))
+        print("Mejor caso por longitud media de episodios: " + min(results, key=lambda x: results[x]['mean_length']))
+        print("Mejor caso por porcentaje de éxito: " + max(results, key=lambda x: results[x]['success_rate']))
         print("Mejor caso por promedio de recompensa de los episodios exitosos: " + max(results, key=lambda x: results[x]['mean_success_reward']))
         print("Mejor caso por promedio de recompensa de los episodios fallidos: " + min(results, key=lambda x: results[x]['mean_failed_reward']))
         print("Mejor caso por tiempo de ejecución: " + min(results, key=lambda x: results[x]['time']))
         print("Mejor caso por número de episodios: " + min(results, key=lambda x: results[x]['num_episodes']))
         print("Mejor caso por máxima recompensa alcanzada: " + max(results, key=lambda x: results[x]['max_reward']))
         print("Mejor caso por mínima recompensa alcanzada: " + max(results, key=lambda x: results[x]['min_reward']))
+        print("Menor tiempo de ejecución: " + min(results, key=lambda x: results[x]['time']))
+
 
 
     def compare_diffrent_environments(self, environments, algorithm='Montecarlo', epsilon=0.1, alpha=0.1, gamma=0.9):
@@ -156,5 +158,6 @@ class Game:
         print("Mejor entorno por número de episodios: " + min(results, key=lambda x: results[x]['num_episodes']))
         print("Mejor entorno por máxima recompensa alcanzada: " + max(results, key=lambda x: results[x]['max_reward']))
         print("Mejor entorno por mínima recompensa alcanzada: " + max(results, key=lambda x: results[x]['min_reward']))
+        print("Menor tiempo de ejecución: " + min(results, key=lambda x: results[x]['time']))
 
 
