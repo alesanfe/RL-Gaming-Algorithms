@@ -1,4 +1,4 @@
-from src.main.python.games.FrozenLake import FrozenLake
+from src.main.python.games.frozen_lake import FrozenLake
 
 def test_frozen_lake():
     iterations = 1000
