@@ -2,6 +2,8 @@ import random
 import numpy
 from collections import defaultdict
 
+from src.main.python.environment_statistic import EnvironmentStatistic
+
 
 class PolíticaVoraz:
     """Implementa una política voraz sobre el valor de pares estado-acción."""
@@ -96,6 +98,7 @@ class Montecarlo_IE:
         self.factor_de_descuento = factor_de_descuento
         self.primera_visita = primera_visita
         self.política_exploratoria = PolíticaVoraz()
+        self.statistics = EnvironmentStatistic()
         self.inicializa_tablas_q_y_r()
 
     def inicializa_tablas_q_y_r(self):
@@ -140,8 +143,12 @@ class Montecarlo_IE:
         """
         pares_estado_acción = []
         recompensas = []
+
+        self.statistics.reset_episode()
+
         # El estado inicial es aleatorio
         estado_actual, info = self.entorno.reset()
+
         # La acción inicial es aleatoria
         acción = self.entorno.action_space.sample()
         while True:
@@ -150,7 +157,11 @@ class Montecarlo_IE:
                 self.entorno.step(acción)
             )
             recompensas.append(recompensa)
+
+            self.statistics.continue_episode(recompensa)
+
             if terminado or truncado:
+                self.statistics.add_episode()
                 break
             estado_actual = estado_siguiente
             acción = self.elige_acción(estado_actual, info)
@@ -173,8 +184,13 @@ class Montecarlo_IE:
         número_episodios -- entero no negativo que establece el número de
                             episodios a entrenar
         """
-        for episodio in range(número_episodios):
+        self.statistics.reset()
+        for _ in range(número_episodios):
             self.ejecuta_episodio()
+
+    def calculate_statistics(self):
+        """Calcula las estadísticas a partir de los datos de los episodios."""
+        return self.statistics.calculate_statistics()
 
 
 class Q_Learning:
@@ -201,6 +217,7 @@ class Q_Learning:
         self.tasa_de_aprendizaje = tasa_de_aprendizaje
         self.factor_de_descuento = factor_de_descuento
         self.política_exploratoria = política_exploratoria
+        self.statistics = EnvironmentStatistic()
         self.inicializa_tabla_q()
 
     def inicializa_tabla_q(self):
@@ -261,6 +278,8 @@ class Q_Learning:
         del entorno hasta que se obtenga la señal de terminación o de truncado.
         """
         estado_actual, info = self.entorno.reset()
+        self.statistics.reset_episode()
+
         while True:
             acción = self.elige_acción(estado_actual, info)
             estado_siguiente, recompensa, terminado, truncado, info = (
@@ -269,8 +288,13 @@ class Q_Learning:
             self.actualiza_tabla_q(
                 estado_actual, acción, recompensa, estado_siguiente
             )
+
+            self.statistics.continue_episode(recompensa)
+
             if terminado or truncado:
+                self.statistics.add_episode()
                 break
+
             estado_actual = estado_siguiente
 
     def entrena(self, número_episodios):
@@ -280,5 +304,10 @@ class Q_Learning:
         número_episodios -- entero no negativo que establece el número de
                             episodios a entrenar
         """
-        for episodio in range(número_episodios):
+        self.statistics.reset()
+        for _ in range(número_episodios):
             self.ejecuta_episodio()
+
+    def calculate_statistics(self):
+        """Calcula las estadísticas a partir de los datos de los episodios."""
+        return self.statistics.calculate_statistics()
