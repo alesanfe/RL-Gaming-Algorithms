@@ -1,20 +1,12 @@
 import random
-
-import gym
-from gym import spaces
-import numpy as np
-import pygame
-from pygame.surfarray import make_surface
-
-
-import random
-import pygame
-from pygame.surfarray import make_surface
 from dataclasses import dataclass
-from typing import Dict, List, DefaultDict
+
 import gym
-from gym import spaces
 import numpy as np
+import pygame
+from gym import spaces
+from gym.envs.registration import register
+
 
 @dataclass
 class GolfEnv(gym.Env):
@@ -62,8 +54,8 @@ class GolfEnv(gym.Env):
 
         # Definición del espacio de acción
         self.action_space = spaces.Tuple((
-            spaces.Discrete(2), # Selección del palo (0 o 1)
-            spaces.Discrete(len(self.directions)) # Selección de la dirección (0 a 7)
+            spaces.Discrete(2),  # Selección del palo (0 o 1)
+            spaces.Discrete(len(self.directions))  # Selección de la dirección (0 a 7)
         ))
 
     def reset(self):
