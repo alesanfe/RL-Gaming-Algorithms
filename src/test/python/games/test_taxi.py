@@ -1,4 +1,4 @@
-from src.main.python.games.Taxi import Taxi
+from src.main.python.games.taxi import Taxi
 
 def test_taxi():
     iterations = 1000
