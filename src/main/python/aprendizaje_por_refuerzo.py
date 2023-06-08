@@ -185,50 +185,12 @@ class Montecarlo_IE:
                             episodios a entrenar
         """
         self.statistics.reset()
-        for episodio in range(número_episodios):
+        for _ in range(número_episodios):
             self.ejecuta_episodio()
 
     def calculate_statistics(self):
         """Calcula las estadísticas a partir de los datos de los episodios."""
-        num_episodes = len(self.tabla_r)
-        cumulative_rewards = []
-        episode_lengths = []
-
-        for state in self.tabla_r:
-            for action in range(self.entorno.action_space.n):
-                returns = self.tabla_r[state][action]
-                cumulative_rewards.extend(returns)
-                episode_lengths.append(len(returns))
-
-        mean_reward = numpy.mean(cumulative_rewards)
-        reward_std = numpy.std(cumulative_rewards)
-        mean_length = numpy.mean(episode_lengths)
-        length_std = numpy.std(episode_lengths)
-        max_reward = numpy.max(cumulative_rewards)
-        min_reward = numpy.min(cumulative_rewards)
-        num_success_episodes = len([reward for reward in cumulative_rewards if reward > 0])
-        success_rate = (num_success_episodes / num_episodes) * 100
-
-        success_rewards = [reward for reward in cumulative_rewards if reward > 0]
-        failed_rewards = [reward for reward in cumulative_rewards if reward <= 0]
-        mean_success_reward = numpy.mean(success_rewards) if success_rewards != [] else 0
-        mean_failed_reward = numpy.mean(failed_rewards) if failed_rewards != [] else 0
-
-        statistics = {
-            'mean_reward': mean_reward,
-            'reward_std': reward_std,
-            'mean_length': mean_length,
-            'length_std': length_std,
-            'num_episodes': num_episodes,
-            'max_reward': max_reward,
-            'min_reward': min_reward,
-            'num_success_episodes': num_success_episodes,
-            'success_rate': success_rate,
-            'mean_success_reward': mean_success_reward,
-            'mean_failed_reward': mean_failed_reward
-        }
-
-        return statistics
+        return self.statistics.calculate_statistics()
 
 
 class Q_Learning:
