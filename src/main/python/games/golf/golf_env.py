@@ -1,23 +1,25 @@
 import random
 from dataclasses import dataclass
+from typing import Optional
 
 import gym
 import numpy as np
 import pygame
 from gym import spaces
-from gym.envs.registration import register
+
+from src.main.python.games.golf.golf_club import GolfClub
+from src.main.python.games.golf.position_golf_ball import PositionGolfBall
 
 
 @dataclass
 class GolfEnv(gym.Env):
     width: int = 10
     height: int = 15
-    palo1_min_force: int = 5
-    palo1_max_force: int = 8
-    palo2_min_force: int = 1
-    palo2_max_force: int = 3
-    field: np.array = np.zeros((width, height), dtype=int)
-    target_location: np.array = np.array([2, height - 1])
+    golfs_club = [
+        GolfClub(5,8),
+        GolfClub(1,3)
+    ]
+    target_location: np.array = PositionGolfBall(2, height - 1)
     agent_location: np.array = None
     terminated: bool = False
     origin: np.array = np.array([width, 0, 1, 2]).reshape(-1, 2)
@@ -26,19 +28,20 @@ class GolfEnv(gym.Env):
     window = None
     clock = None
     obstacles = np.array([
-        [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
-        [1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5],
-        [2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5],
-        [3, 0], [3, 1], [3, 2], [3, 3], [3, 4],
-        [4, 0], [4, 1], [4, 2], [4, 3],
-        [5, 0], [5, 1], [5, 2],
-        [9, 7], [9, 8], [9, 9], [9, 10], [9, 11], [9, 12], [9, 13], [9, 14],
-        [8, 7], [8, 8], [8, 9], [8, 10], [8, 11], [8, 12], [8, 13], [8, 14],
-        [7, 7], [7, 8], [7, 9], [7, 10], [7, 11], [7, 12], [7, 13], [7, 14],
-        [6, 7], [6, 8], [6, 9], [6, 10], [6, 11], [6, 12], [6, 13],
-        [5, 7], [5, 8], [5, 9], [5, 10], [5, 11], [5, 12],
-        [4, 7], [4, 8], [4, 9], [4, 10], [4, 11],
+        PositionGolfBall(0, 0), PositionGolfBall(0, 1), PositionGolfBall(0, 2), PositionGolfBall(0, 3), PositionGolfBall(0, 4), PositionGolfBall(0, 5),
+        PositionGolfBall(1, 0), PositionGolfBall(1, 1), PositionGolfBall(1, 2), PositionGolfBall(1, 3), PositionGolfBall(1, 4), PositionGolfBall(1, 5),
+        PositionGolfBall(2, 0), PositionGolfBall(2, 1), PositionGolfBall(2, 2), PositionGolfBall(2, 3), PositionGolfBall(2, 4), PositionGolfBall(2, 5),
+        PositionGolfBall(3, 0), PositionGolfBall(3, 1), PositionGolfBall(3, 2), PositionGolfBall(3, 3), PositionGolfBall(3, 4),
+        PositionGolfBall(4, 0), PositionGolfBall(4, 1), PositionGolfBall(4, 2), PositionGolfBall(4, 3),
+        PositionGolfBall(5, 0), PositionGolfBall(5, 1), PositionGolfBall(5, 2),
+        PositionGolfBall(9, 7), PositionGolfBall(9, 8), PositionGolfBall(9, 9), PositionGolfBall(9, 10), PositionGolfBall(9, 11), PositionGolfBall(9, 12), PositionGolfBall(9, 13), PositionGolfBall(9, 14),
+        PositionGolfBall(8, 7), PositionGolfBall(8, 8), PositionGolfBall(8, 9), PositionGolfBall(8, 10), PositionGolfBall(8, 11), PositionGolfBall(8, 12), PositionGolfBall(8, 13), PositionGolfBall(8, 14),
+        PositionGolfBall(7, 7), PositionGolfBall(7, 8), PositionGolfBall(7, 9), PositionGolfBall(7, 10), PositionGolfBall(7, 11), PositionGolfBall(7, 12), PositionGolfBall(7, 13), PositionGolfBall(7, 14),
+        PositionGolfBall(6, 7), PositionGolfBall(6, 8), PositionGolfBall(6, 9), PositionGolfBall(6, 10), PositionGolfBall(6, 11), PositionGolfBall(6, 12), PositionGolfBall(6, 13),
+        PositionGolfBall(5, 7), PositionGolfBall(5, 8), PositionGolfBall(5, 9), PositionGolfBall(5, 10), PositionGolfBall(5, 11), PositionGolfBall(5, 12),
+        PositionGolfBall(4, 7), PositionGolfBall(4, 8), PositionGolfBall(4, 9), PositionGolfBall(4, 10), PositionGolfBall(4, 11)
     ])
+    field = np.array([PositionGolfBall(x, y) for x in range(width) for y in range(height) if PositionGolfBall(x, y) not in obstacles])
 
     def __post_init__(self):
         self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
@@ -53,40 +56,37 @@ class GolfEnv(gym.Env):
         })
 
         # Definición del espacio de acción
-        self.action_space = spaces.Tuple((
-            spaces.Discrete(2),  # Selección del palo (0 o 1)
-            spaces.Discrete(len(self.directions))  # Selección de la dirección (0 a 7)
-        ))
+        self.action_space = spaces.Discrete(len(self.golfs_club) * len(self.directions))
 
     def reset(self):
-        self.field = np.zeros((self.size, self.size), dtype=int)
         self.agent_location = self._get_random_location()
         self.terminated = False
         return self._get_observation()
 
     def step(self, action):
-        palo, direction = action
+        print(action)
 
-        if palo == 0:
-            min_force, max_force = self.palo1_min_force, self.palo1_max_force
-        else:
-            min_force, max_force = self.palo2_min_force, self.palo2_max_force
+        direction = action % len(self.directions)
+        print(direction)
+        palo = action // len(self.directions)
+        print(palo)
+
+        min_force = self.golfs_club[palo].min_force
+        max_force = self.golfs_club[palo].max_force
 
         force = np.random.randint(min_force, max_force + 1)
         direction_vector = self.directions[direction]
 
-        new_location = self.agent_location + force * direction_vector
-        new_location = self._clip_location(new_location)
+        new_location = self.agent_location.new_position(force, direction_vector)
 
-        if np.array_equal(new_location, self.target_location):
+        if new_location == self.target_location:
             self.terminated = True
             reward = 1  # Recompensa por llegar al hoyo
-        elif self.field[tuple(new_location)] != 0 or (
-                self.obstacles[tuple(new_location)] != 0 and self.field[tuple(new_location)] == 0):
+        elif new_location in self.obstacles or new_location not in self.field:
             self.terminated = True
             reward = -1  # Penalización por golpear obstáculo
         else:
-            self.field[tuple(new_location)] = 1
+            self.agent_location = new_location
             reward = 0
 
         if self.render_mode == "human":
@@ -106,12 +106,6 @@ class GolfEnv(gym.Env):
 
     def _get_info(self):
         return {"distance": np.linalg.norm(self.agent_location - self.target_location, ord=1)}
-
-    def _get_random_location(self):
-        return self.origin[random.randint(0, 2)]
-
-    def _clip_location(self, location):
-        return np.clip(location, 0, self.size - 1)
 
     def _render_frame(self):
         # Verificar si es necesario inicializar la ventana y el reloj en modo humano
@@ -197,3 +191,12 @@ class GolfEnv(gym.Env):
         if self.window is not None:
             pygame.display.quit()
             pygame.quit()
+
+    def _get_random_location(self):
+        # TODO: Cambiar para que devuelva una de las tres localizaciones válidas
+        while True:
+            location = np.random.randint(0, self.width), np.random.randint(0, self.height)
+            if location not in self.obstacles:
+                return location
+
+

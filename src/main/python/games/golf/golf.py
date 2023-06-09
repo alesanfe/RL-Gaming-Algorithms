@@ -1,8 +1,7 @@
-import gym
 from gym.wrappers import RecordEpisodeStatistics
 
 from src.main.python.games.game import Game
-from src.main.python.games.golf_env import GolfEnv
+from src.main.python.games.golf.golf_env import GolfEnv
 
 
 class Golf(Game):
@@ -13,7 +12,7 @@ class Golf(Game):
     """
 
     def __init__(self, discount_factor=0.9, learning_factor=0.1, iterations=1000):
-        super().__init__(RecordEpisodeStatistics(gym.make('Golf-v0')), discount_factor, learning_factor, iterations)
+        super().__init__(RecordEpisodeStatistics(GolfEnv()), discount_factor, learning_factor, iterations)
 
     def resolve_golf_by_montecarlo(self):
         """Resolución del entorno Golf utilizando Montecarlo con inicios exploratorios."""
@@ -26,7 +25,3 @@ class Golf(Game):
     def resolve_golf_by_sarsa(self, epsilon=0.1, alpha=0.1, gamma=0.99):
         """Resolución del entorno Golf utilizando Sarsa."""
         return self.resolve_by_sarsa(epsilon, alpha, gamma)
-
-    def resolve_golf_by_double_q_learning(self, epsilon=0.1, alpha=0.1, gamma=0.99):
-        """Resolución del entorno Golf utilizando Double Q-Learning."""
-        return self.resolve_by_double_q_learning(epsilon, alpha, gamma)

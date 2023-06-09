@@ -1,4 +1,4 @@
-from src.main.python.games.golf import Golf
+from src.main.python.games.golf.golf import Golf
 
 def test_golf():
     iterations = 1000

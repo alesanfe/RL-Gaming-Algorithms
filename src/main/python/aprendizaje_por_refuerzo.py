@@ -111,6 +111,8 @@ class Montecarlo_IE:
         lista (inicialmente vacía) con todas las recompensas acumuladas a
         partir del estado que se han observado.
         """
+        print(self.entorno.action_space)
+        print("hola")
         cantidad_acciones = self.entorno.action_space.n
         self.tabla_q = defaultdict(
             lambda: numpy.full(cantidad_acciones, -numpy.inf)
