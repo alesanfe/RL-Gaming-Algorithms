@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 import time
 
-import gym
 from gym import Env
 
 from src.main.python.sarsa import Sarsa
