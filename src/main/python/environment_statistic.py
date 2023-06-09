@@ -84,6 +84,7 @@ class EnvironmentStatistic:
         # Plotting statistics
         labels = ['mean_reward', 'reward_std', 'mean_length', 'length_std', 'max_reward', 'min_reward']
         values = [statistics[label] for label in labels]
+        cumulative_rewards = [episode['cumulative_reward'] for episode in self.episode_data['episodes']]
 
         plt.bar(labels, values)
         plt.ylabel('Value')
