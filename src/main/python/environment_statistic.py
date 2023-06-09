@@ -1,6 +1,7 @@
 import time
 
 import numpy
+import matplotlib.pyplot as plt
 
 
 class EnvironmentStatistic:
@@ -58,3 +59,44 @@ class EnvironmentStatistic:
         }
 
         return statistics
+
+    def _plot_graph(self, data, ylabel):
+        plt.plot(data)
+        plt.ylabel(ylabel)
+        plt.xlabel('Episode')
+        plt.show()
+
+    def get_graph_reward(self):
+        data = [episode['cumulative_reward'] for episode in self.episode_data['episodes']]
+        self._plot_graph(data, 'Reward')
+
+    def get_graph_length(self):
+        data = [episode['episode_length'] for episode in self.episode_data['episodes']]
+        self._plot_graph(data, 'Length')
+
+    def get_graph_time(self):
+        data = [episode['duration'] for episode in self.episode_data['episodes']]
+        self._plot_graph(data, 'Duration')
+
+    def get_graph_statistics(self):
+        statistics = self.calculate_statistics()
+
+        # Plotting statistics
+        labels = ['mean_reward', 'reward_std', 'mean_length', 'length_std', 'max_reward', 'min_reward']
+        values = [statistics[label] for label in labels]
+
+        plt.bar(labels, values)
+        plt.ylabel('Value')
+        plt.xlabel('Statistic')
+        plt.show()
+
+        # Plotting success and failure rewards
+        success_rewards = [reward for reward in cumulative_rewards if reward > 0]
+        failed_rewards = [reward for reward in cumulative_rewards if reward <= 0]
+
+        plt.hist(success_rewards, bins=10, alpha=0.5, label='Success Rewards')
+        plt.hist(failed_rewards, bins=10, alpha=0.5, label='Failed Rewards')
+        plt.legend(loc='upper right')
+        plt.xlabel('Reward')
+        plt.ylabel('Frequency')
+        plt.show()
