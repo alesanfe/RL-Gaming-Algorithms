@@ -6,10 +6,6 @@ class PositionGolfBall:
     x: float
     y: float
 
-    def new_position(self, force, direction_vector):
-        """Debe devolver la nueva dirección, que será la antigua desplazada"""
-        return PositionGolfBall(self.x + force * direction_vector[0], self.y + force * direction_vector[1])
-
     def calculate_distance(self, other):
         return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
 

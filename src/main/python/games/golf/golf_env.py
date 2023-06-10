@@ -15,39 +15,70 @@ class GolfEnv(gym.Env):
     width: int = 10
     height: int = 15
     golfs_club = [
-        GolfClub(5,8),
-        GolfClub(1,3)
+        GolfClub(5,8, -3, 3),
+        GolfClub(1,3, -1, 1),
+        GolfClub(4, 9, -2, 2),
+        GolfClub(6, 7, 0, 4),
+        GolfClub(3, 10, -1, 1)
     ]
     target_location: np.array = PositionGolfBall(2, height - 1)
     agent_location: np.array = None
     terminated: bool = False
     origin: np.array = np.array([
-        PositionGolfBall(0, 9), PositionGolfBall(1, 9), PositionGolfBall(2, 9)
+        PositionGolfBall(9, 0), PositionGolfBall(9, 1), PositionGolfBall(9, 2)
     ])
     window_size: int = 512
     render_mode: str = "human"
     window = None
     clock = None
-    obstacles = np.array([
-        PositionGolfBall(0, 0), PositionGolfBall(0, 1), PositionGolfBall(0, 2), PositionGolfBall(0, 3), PositionGolfBall(0, 4), PositionGolfBall(0, 5),
-        PositionGolfBall(1, 0), PositionGolfBall(1, 1), PositionGolfBall(1, 2), PositionGolfBall(1, 3), PositionGolfBall(1, 4), PositionGolfBall(1, 5),
-        PositionGolfBall(2, 0), PositionGolfBall(2, 1), PositionGolfBall(2, 2), PositionGolfBall(2, 3), PositionGolfBall(2, 4), PositionGolfBall(2, 5),
+    lake = np.array([
+        PositionGolfBall(0, 0), PositionGolfBall(0, 1), PositionGolfBall(0, 2), PositionGolfBall(0, 3), PositionGolfBall(0, 4),
+        PositionGolfBall(1, 0), PositionGolfBall(1, 1), PositionGolfBall(1, 2), PositionGolfBall(1, 3), PositionGolfBall(1, 4),
+        PositionGolfBall(2, 0), PositionGolfBall(2, 1), PositionGolfBall(2, 2), PositionGolfBall(2, 3), PositionGolfBall(2, 4),
         PositionGolfBall(3, 0), PositionGolfBall(3, 1), PositionGolfBall(3, 2), PositionGolfBall(3, 3), PositionGolfBall(3, 4),
-        PositionGolfBall(4, 0), PositionGolfBall(4, 1), PositionGolfBall(4, 2), PositionGolfBall(4, 3),
-        PositionGolfBall(5, 0), PositionGolfBall(5, 1), PositionGolfBall(5, 2),
-        PositionGolfBall(9, 7), PositionGolfBall(9, 8), PositionGolfBall(9, 9), PositionGolfBall(9, 10), PositionGolfBall(9, 11), PositionGolfBall(9, 12), PositionGolfBall(9, 13), PositionGolfBall(9, 14),
-        PositionGolfBall(8, 7), PositionGolfBall(8, 8), PositionGolfBall(8, 9), PositionGolfBall(8, 10), PositionGolfBall(8, 11), PositionGolfBall(8, 12), PositionGolfBall(8, 13), PositionGolfBall(8, 14),
-        PositionGolfBall(7, 7), PositionGolfBall(7, 8), PositionGolfBall(7, 9), PositionGolfBall(7, 10), PositionGolfBall(7, 11), PositionGolfBall(7, 12), PositionGolfBall(7, 13), PositionGolfBall(7, 14),
-        PositionGolfBall(6, 7), PositionGolfBall(6, 8), PositionGolfBall(6, 9), PositionGolfBall(6, 10), PositionGolfBall(6, 11), PositionGolfBall(6, 12), PositionGolfBall(6, 13),
-        PositionGolfBall(5, 7), PositionGolfBall(5, 8), PositionGolfBall(5, 9), PositionGolfBall(5, 10), PositionGolfBall(5, 11), PositionGolfBall(5, 12),
-        PositionGolfBall(4, 7), PositionGolfBall(4, 8), PositionGolfBall(4, 9), PositionGolfBall(4, 10), PositionGolfBall(4, 11)
+        PositionGolfBall(4, 0), PositionGolfBall(4, 1), PositionGolfBall(4, 2),
+        PositionGolfBall(5, 0), PositionGolfBall(5, 1),
+        PositionGolfBall(9, 8), PositionGolfBall(9, 9), PositionGolfBall(9, 10), PositionGolfBall(9, 11), PositionGolfBall(9, 12), PositionGolfBall(9, 13),
+        PositionGolfBall(8, 8), PositionGolfBall(8, 9), PositionGolfBall(8, 10), PositionGolfBall(8, 11), PositionGolfBall(8, 12), PositionGolfBall(8, 13),
+        PositionGolfBall(7, 8), PositionGolfBall(7, 9), PositionGolfBall(7, 10), PositionGolfBall(7, 11), PositionGolfBall(7, 12), PositionGolfBall(7, 13),
+        PositionGolfBall(6, 8), PositionGolfBall(6, 9), PositionGolfBall(6, 10), PositionGolfBall(6, 11), PositionGolfBall(6, 12), PositionGolfBall(6, 13),
+        PositionGolfBall(5, 8), PositionGolfBall(5, 9), PositionGolfBall(5, 10),
+        PositionGolfBall(4, 10),
+        PositionGolfBall(4, 11)
+    ])
+    sands = np.array([
+        PositionGolfBall(0, 5),
+        PositionGolfBall(1, 5),
+        PositionGolfBall(2, 5),
+        PositionGolfBall(3, 4),
+        PositionGolfBall(4, 4),
+        PositionGolfBall(4, 3),
+        PositionGolfBall(5, 2),
+        PositionGolfBall(5, 1),
+        PositionGolfBall(6, 0),
+        PositionGolfBall(9, 14),
+        PositionGolfBall(8, 14),
+        PositionGolfBall(7, 14),
+        PositionGolfBall(6, 13),
+        PositionGolfBall(5, 12),
+        PositionGolfBall(5, 11),
+        PositionGolfBall(4, 11),
+        PositionGolfBall(4, 10),
+        PositionGolfBall(4, 9),
+        PositionGolfBall(4, 8),
+        PositionGolfBall(4, 7),
+        PositionGolfBall(5, 7),
+        PositionGolfBall(6, 7),
+        PositionGolfBall(7, 7),
+        PositionGolfBall(8, 7),
+        PositionGolfBall(9, 7),
     ])
 
 
     def __post_init__(self):
         self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
         self.directions = [np.array([dx, dy]) for dx in range(-1, 2) for dy in range(-1, 2) if not (dx == 0 and dy == 0)]
-        self.field = np.array([PositionGolfBall(x, y) for x in range(self.width) for y in range(self.height) if PositionGolfBall(x, y) not in self.obstacles])
+        self.field = np.array([PositionGolfBall(x, y) for x in range(self.width) for y in range(self.height) if PositionGolfBall(x, y) not in self.lake and PositionGolfBall(x, y) not in self.sands])
         print(self.directions)
 
         assert self.render_mode is None or self.render_mode in self.metadata["render_modes"]
@@ -64,7 +95,12 @@ class GolfEnv(gym.Env):
         self.action_space = spaces.Discrete(len(self.golfs_club) * len(self.directions))
 
     def reset(self):
+        print(
+            "Resetting environment..."
+        )
+
         self.agent_location = self._get_random_location()
+        print("Agent location: ", self.agent_location)
         self.terminated = False
         self.truncated = False
         return self._get_observation()
@@ -74,28 +110,29 @@ class GolfEnv(gym.Env):
         direction = action % len(self.directions)
         palo = action // len(self.directions)
 
-        min_force = self.golfs_club[palo].min_force
-        max_force = self.golfs_club[palo].max_force
-
-        force = np.random.randint(min_force, max_force + 1)
+        golf_club = self.golfs_club[palo]
         direction_vector = self.directions[direction]
 
-        new_location = self.agent_location.new_position(force, direction_vector)
-        if new_location == self.target_location:
+
+        if self.agent_location == self.target_location:
             self.terminated = True
             print("Viva a Juan Vi")
             reward = 100  # Recompensa por llegar al hoyo
-        elif new_location in self.obstacles or new_location not in self.field:
+        elif self.agent_location in self.lake or self.agent_location not in self.field:
             self.truncated = True
-            reward = -100  # Penalización por golpear obstáculo
+            reward = -100  # Penalización por caer en el lago o fuera del campo
+        elif self.agent_location in self.sands:
+            reward = -10 # Penalización por caer en arena
+            golf_club.modify = 0.5 # Modificar la fuerza del golpe
         else:
-            self.agent_location = new_location
             reward = 0
 
         if self.render_mode == "human":
             self._render_frame()
 
-        return new_location, reward, self.terminated, self.truncated, self._get_info()
+        self.agent_location = golf_club.hit(self.agent_location, direction_vector)
+
+        return self.agent_location, reward, self.terminated, self.truncated, self._get_info()
 
     def render(self):
         if self.render_mode == "rgb_array":
@@ -126,6 +163,31 @@ class GolfEnv(gym.Env):
         pix_square_width = self.window_size / self.width
         pix_square_height = self.window_size / self.height
 
+        self._draw_grass(canvas, pix_square_height, pix_square_width)
+
+        self._draw_hole(canvas, pix_square_height, pix_square_width)
+
+        self._draw_water(canvas, pix_square_height, pix_square_width)
+
+        self._draw_sand(canvas, pix_square_height, pix_square_width)
+
+        self._draw_rectangles(canvas, pix_square_height, pix_square_width)
+
+        self._draw_ball(canvas, pix_square_height, pix_square_width)
+
+        # Actualizar la ventana y controlar la frecuencia de actualización en modo humano
+        if self.render_mode == "human":
+            self.window.blit(canvas, canvas.get_rect())
+            pygame.event.pump()
+            pygame.display.update()
+            self.clock.tick(self.metadata["render_fps"])
+        else:
+            # Devolver el lienzo en formato numpy si no es modo humano
+            return np.transpose(
+                np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
+            )
+
+    def _draw_grass(self, canvas, pix_square_height, pix_square_width):
         # Dentro del bucle de dibujo:
         for x in range(self.height + 1):
             for y in range(self.width + 1):
@@ -144,33 +206,41 @@ class GolfEnv(gym.Env):
                 # Superponer la imagen en el rectángulo
                 canvas.blit(resized_image, (rect_x, rect_y))
 
+    def _draw_hole(self, canvas, pix_square_height, pix_square_width):
         # Redimensionar la imagen al tamaño del cuadrado de píxeles
-        target_image = pygame.transform.scale(self._get_image("hole.png"), (int(pix_square_width), int(pix_square_height)))
-
+        target_image = pygame.transform.scale(self._get_image("hole.png"),
+                                              (int(pix_square_width), int(pix_square_height)))
         # Dibujar la imagen del objetivo en el lienzo de dibujo
         canvas.blit(target_image,
                     (pix_square_width * self.target_location.x, pix_square_height * self.target_location.y))
 
-        agent_image = pygame.transform.scale(self._get_image("golf.png"),
-                                              (int(pix_square_width), int(pix_square_height)))
-
-        canvas.blit(agent_image,
-                    (pix_square_width * self.agent_location.x, pix_square_height * self.agent_location.y))
-
-
-        # Cargar la imagen del obstáculo
-        obstacle_image = self._get_image("water.jpg")
-        for obstacle in self.obstacles:
+    def _draw_water(self, canvas, pix_square_height, pix_square_width):
+        water_image = self._get_image("water.jpg")
+        for water in self.lake:
             # Obtener las coordenadas de píxel del obstáculo
-            obstacle_x = pix_square_width * obstacle.x
-            obstacle_y = pix_square_height * obstacle.y
+            water_x = pix_square_width * water.x
+            water_y = pix_square_height * water.y
 
             # Redimensionar la imagen al tamaño del rectángulo
-            resized_image = pygame.transform.scale(obstacle_image, (pix_square_width, pix_square_height))
+            resized_image = pygame.transform.scale(water_image, (pix_square_width, pix_square_height))
 
             # Dibujar la imagen redimensionada en el lienzo con la posición adecuada
-            canvas.blit(resized_image, (obstacle_x, obstacle_y))
+            canvas.blit(resized_image, (water_x, water_y))
 
+    def _draw_sand(self, canvas, pix_square_height, pix_square_width):
+        sand_image = self._get_image("sand.jpg")
+        for sand in self.sands:
+            # Obtener las coordenadas de píxel del obstáculo
+            sand_x = pix_square_width * sand.x
+            sand_y = pix_square_height * sand.y
+
+            # Redimensionar la imagen al tamaño del rectángulo
+            resized_image = pygame.transform.scale(sand_image, (pix_square_width, pix_square_height))
+
+            # Dibujar la imagen redimensionada en el lienzo con la posición adecuada
+            canvas.blit(resized_image, (sand_x, sand_y))
+
+    def _draw_rectangles(self, canvas, pix_square_height, pix_square_width):
         # Dibujar las líneas verticales del campo de golf
         for x in range(self.height + 1):
             pygame.draw.line(
@@ -180,10 +250,7 @@ class GolfEnv(gym.Env):
                 (self.window_size, pix_square_height * x),
                 width=3,
             )
-
         # Dibujar las líneas horizontales del campo de golf
-        print(self.width)
-        print(self.height)
         for y in range(self.width + 1):
             pygame.draw.line(
                 canvas,
@@ -193,17 +260,11 @@ class GolfEnv(gym.Env):
                 width=3,
             )
 
-        # Actualizar la ventana y controlar la frecuencia de actualización en modo humano
-        if self.render_mode == "human":
-            self.window.blit(canvas, canvas.get_rect())
-            pygame.event.pump()
-            pygame.display.update()
-            self.clock.tick(self.metadata["render_fps"])
-        else:
-            # Devolver el lienzo en formato numpy si no es modo humano
-            return np.transpose(
-                np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
-            )
+    def _draw_ball(self, canvas, pix_square_height, pix_square_width):
+        agent_image = pygame.transform.scale(self._get_image("golf.png"),
+                                             (int(pix_square_width), int(pix_square_height)))
+        canvas.blit(agent_image,
+                    (pix_square_width * self.agent_location.x, pix_square_height * self.agent_location.y))
 
     def _get_image(self, name):
         image_path = os.path.dirname(
@@ -217,6 +278,7 @@ class GolfEnv(gym.Env):
             pygame.quit()
 
     def _get_random_location(self):
+        print(self.origin[np.random.randint(0, len(self.origin))])
         return self.origin[np.random.randint(0, len(self.origin))]
 
 
