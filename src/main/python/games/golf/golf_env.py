@@ -22,7 +22,9 @@ class GolfEnv(gym.Env):
     target_location: np.array = PositionGolfBall(2, height - 1)
     agent_location: np.array = None
     terminated: bool = False
-    origin: np.array = np.array([width, 0, 1, 2]).reshape(-1, 2)
+    origin: np.array = np.array([
+        PositionGolfBall(0, 9), PositionGolfBall(1, 9), PositionGolfBall(2, 9)
+    ])
     window_size: int = 512
     render_mode: str = "human"
     window = None
@@ -41,11 +43,13 @@ class GolfEnv(gym.Env):
         PositionGolfBall(5, 7), PositionGolfBall(5, 8), PositionGolfBall(5, 9), PositionGolfBall(5, 10), PositionGolfBall(5, 11), PositionGolfBall(5, 12),
         PositionGolfBall(4, 7), PositionGolfBall(4, 8), PositionGolfBall(4, 9), PositionGolfBall(4, 10), PositionGolfBall(4, 11)
     ])
-    field = np.array([PositionGolfBall(x, y) for x in range(width) for y in range(height) if PositionGolfBall(x, y) not in obstacles])
+
 
     def __post_init__(self):
         self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
-        self.directions = [np.array([dx, dy]) for dx in range(-1, 2) for dy in range(-1, 2) if dx != 0 and dy != 0]
+        self.directions = [np.array([dx, dy]) for dx in range(-1, 2) for dy in range(-1, 2) if not (dx == 0 and dy == 0)]
+        self.field = np.array([PositionGolfBall(x, y) for x in range(self.width) for y in range(self.height) if PositionGolfBall(x, y) not in self.obstacles])
+        print(self.directions)
 
         assert self.render_mode is None or self.render_mode in self.metadata["render_modes"]
 
@@ -55,12 +59,15 @@ class GolfEnv(gym.Env):
             "target": spaces.Box(0, np.array([self.width, self.height]) - 1, dtype=int),
         })
 
+        # self.observation_space = spaces.Dict({i: 0 for i in self.field})
+
         # Definición del espacio de acción
         self.action_space = spaces.Discrete(len(self.golfs_club) * len(self.directions))
 
     def reset(self):
         self.agent_location = self._get_random_location()
         self.terminated = False
+        self.truncated = False
         return self._get_observation()
 
     def step(self, action):
@@ -78,12 +85,12 @@ class GolfEnv(gym.Env):
         direction_vector = self.directions[direction]
 
         new_location = self.agent_location.new_position(force, direction_vector)
-
+        print(new_location)
         if new_location == self.target_location:
             self.terminated = True
             reward = 1  # Recompensa por llegar al hoyo
         elif new_location in self.obstacles or new_location not in self.field:
-            self.terminated = True
+            self.truncated = True
             reward = -1  # Penalización por golpear obstáculo
         else:
             self.agent_location = new_location
@@ -92,7 +99,7 @@ class GolfEnv(gym.Env):
         if self.render_mode == "human":
             self._render_frame()
 
-        return self._get_observation(), reward, self.terminated, self._get_info()
+        return new_location, reward, self.terminated, self.truncated, self._get_info()
 
     def render(self):
         if self.render_mode == "rgb_array":
@@ -105,7 +112,7 @@ class GolfEnv(gym.Env):
         }
 
     def _get_info(self):
-        return {"distance": np.linalg.norm(self.agent_location - self.target_location, ord=1)}
+        return {"distance": self.agent_location.calculate_distance(self.target_location)}
 
     def _render_frame(self):
         # Verificar si es necesario inicializar la ventana y el reloj en modo humano
@@ -126,8 +133,8 @@ class GolfEnv(gym.Env):
             canvas,
             (255, 0, 0),
             pygame.Rect(
-                pix_square_width * self.target_location[0],
-                pix_square_height * self.target_location[1],
+                pix_square_width * self.target_location.x,
+                pix_square_height * self.target_location.y,
                 pix_square_width,
                 pix_square_height,
             ),
@@ -137,7 +144,7 @@ class GolfEnv(gym.Env):
         pygame.draw.circle(
             canvas,
             (0, 0, 255),
-            ((self.agent_location[0] + 0.5) * pix_square_width, (self.agent_location[1] + 0.5) * pix_square_height),
+            ((self.agent_location.x + 0.5) * pix_square_width, (self.agent_location.y + 0.5) * pix_square_height),
             min(pix_square_width, pix_square_height) / 3,
         )
 
@@ -168,8 +175,8 @@ class GolfEnv(gym.Env):
                 canvas,
                 obstacle_color,
                 pygame.Rect(
-                    pix_square_width * obstacle[0],
-                    pix_square_height * obstacle[1],
+                    pix_square_width * obstacle.x,
+                    pix_square_height * obstacle.y,
                     pix_square_width,
                     pix_square_height,
                 ),
@@ -194,9 +201,6 @@ class GolfEnv(gym.Env):
 
     def _get_random_location(self):
         # TODO: Cambiar para que devuelva una de las tres localizaciones válidas
-        while True:
-            location = np.random.randint(0, self.width), np.random.randint(0, self.height)
-            if location not in self.obstacles:
-                return location
+        return self.origin[np.random.randint(0, len(self.origin))]
 
 

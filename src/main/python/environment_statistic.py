@@ -16,6 +16,11 @@ class EnvironmentStatistic:
         self.episode_reward = 0
         self.episode_length = 0
 
+    def continue_episode(self, reward):
+        self.episode_reward += reward
+        self.episode_length += 1
+
+
     def add_episode(self):
         self.episode_data['episodes'].append(
             {'cumulative_reward': self.episode_reward, 'episode_length': self.episode_length})
