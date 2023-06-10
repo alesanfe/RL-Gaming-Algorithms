@@ -113,16 +113,10 @@ class Montecarlo_IE:
         lista (inicialmente vacía) con todas las recompensas acumuladas a
         partir del estado que se han observado.
         """
-        print(self.entorno.action_space)
-        print("hola")
         cantidad_acciones = self.entorno.action_space.n
-        print("dfsdf")
-        print(cantidad_acciones)
         self.tabla_q = defaultdict(
             lambda: numpy.full(cantidad_acciones, -numpy.inf)
         )
-        print("hola")
-        print(self.tabla_q[0])
         self.tabla_r = defaultdict(
             lambda: tuple([] for _ in range(cantidad_acciones))
         )
@@ -135,8 +129,6 @@ class Montecarlo_IE:
         info -- información proporcionada por los métodos reset y step del
                 entorno (no usada en esta implementación)
         """
-        print("hola " + str(self.tabla_q.keys()))
-        print(estado)
         acción = self.política_exploratoria.elige_acción(
             estado,
             self.entorno.action_space,
@@ -158,7 +150,6 @@ class Montecarlo_IE:
 
         # El estado inicial es aleatorio
         estado_actual, info = self.entorno.reset()
-        print(estado_actual)
 
         # La acción inicial es aleatoria
         acción = self.entorno.action_space.sample()

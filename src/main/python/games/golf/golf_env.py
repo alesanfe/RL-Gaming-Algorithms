@@ -1,6 +1,5 @@
-import random
+import os
 from dataclasses import dataclass
-from typing import Optional
 
 import gym
 import numpy as np
@@ -71,12 +70,9 @@ class GolfEnv(gym.Env):
         return self._get_observation()
 
     def step(self, action):
-        print(action)
 
         direction = action % len(self.directions)
-        print(direction)
         palo = action // len(self.directions)
-        print(palo)
 
         min_force = self.golfs_club[palo].min_force
         max_force = self.golfs_club[palo].max_force
@@ -85,13 +81,13 @@ class GolfEnv(gym.Env):
         direction_vector = self.directions[direction]
 
         new_location = self.agent_location.new_position(force, direction_vector)
-        print(new_location)
         if new_location == self.target_location:
             self.terminated = True
-            reward = 1  # Recompensa por llegar al hoyo
+            print("Viva a Juan Vi")
+            reward = 100  # Recompensa por llegar al hoyo
         elif new_location in self.obstacles or new_location not in self.field:
             self.truncated = True
-            reward = -1  # Penalización por golpear obstáculo
+            reward = -100  # Penalización por golpear obstáculo
         else:
             self.agent_location = new_location
             reward = 0
@@ -122,34 +118,61 @@ class GolfEnv(gym.Env):
             self.window = pygame.display.set_mode((self.window_size, self.window_size))
             self.clock = pygame.time.Clock()
 
+        # Obtiene la ruta absoluta al directorio raíz del proyecto
+
         # Crear el lienzo de dibujo
         canvas = pygame.Surface((self.window_size, self.window_size))
         canvas.fill((255, 255, 255))
         pix_square_width = self.window_size / self.width
         pix_square_height = self.window_size / self.height
 
-        # Dibujar el objetivo
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                pix_square_width * self.target_location.x,
-                pix_square_height * self.target_location.y,
-                pix_square_width,
-                pix_square_height,
-            ),
-        )
+        # Dentro del bucle de dibujo:
+        for x in range(self.height + 1):
+            for y in range(self.width + 1):
+                # Calcular las coordenadas del rectángulo
+                rect_x = pix_square_width * y
+                rect_y = pix_square_height * x
 
-        # Dibujar el agente
-        pygame.draw.circle(
-            canvas,
-            (0, 0, 255),
-            ((self.agent_location.x + 0.5) * pix_square_width, (self.agent_location.y + 0.5) * pix_square_height),
-            min(pix_square_width, pix_square_height) / 3,
-        )
+                # Dibujar el rectángulo
+                pygame.draw.rect(canvas, (255, 255, 255),
+                                 pygame.Rect(rect_x, rect_y, pix_square_width, pix_square_height))
+
+                # Cargar la imagen y redimensionarla al tamaño del rectángulo
+                image_path = self._get_image("grass.jpg")
+                resized_image = pygame.transform.scale(image_path, (pix_square_width, pix_square_height))
+
+                # Superponer la imagen en el rectángulo
+                canvas.blit(resized_image, (rect_x, rect_y))
+
+        # Redimensionar la imagen al tamaño del cuadrado de píxeles
+        target_image = pygame.transform.scale(self._get_image("hole.png"), (int(pix_square_width), int(pix_square_height)))
+
+        # Dibujar la imagen del objetivo en el lienzo de dibujo
+        canvas.blit(target_image,
+                    (pix_square_width * self.target_location.x, pix_square_height * self.target_location.y))
+
+        agent_image = pygame.transform.scale(self._get_image("golf.png"),
+                                              (int(pix_square_width), int(pix_square_height)))
+
+        canvas.blit(agent_image,
+                    (pix_square_width * self.agent_location.x, pix_square_height * self.agent_location.y))
+
+
+        # Cargar la imagen del obstáculo
+        obstacle_image = self._get_image("water.jpg")
+        for obstacle in self.obstacles:
+            # Obtener las coordenadas de píxel del obstáculo
+            obstacle_x = pix_square_width * obstacle.x
+            obstacle_y = pix_square_height * obstacle.y
+
+            # Redimensionar la imagen al tamaño del rectángulo
+            resized_image = pygame.transform.scale(obstacle_image, (pix_square_width, pix_square_height))
+
+            # Dibujar la imagen redimensionada en el lienzo con la posición adecuada
+            canvas.blit(resized_image, (obstacle_x, obstacle_y))
 
         # Dibujar las líneas verticales del campo de golf
-        for x in range(self.width + 1):
+        for x in range(self.height + 1):
             pygame.draw.line(
                 canvas,
                 0,
@@ -159,27 +182,15 @@ class GolfEnv(gym.Env):
             )
 
         # Dibujar las líneas horizontales del campo de golf
-        for y in range(self.height + 1):
+        print(self.width)
+        print(self.height)
+        for y in range(self.width + 1):
             pygame.draw.line(
                 canvas,
                 0,
                 (pix_square_width * y, 0),
                 (pix_square_width * y, self.window_size),
                 width=3,
-            )
-
-        # Dibujar los obstáculos
-        obstacle_color = (0, 0, 0)
-        for obstacle in self.obstacles:
-            pygame.draw.rect(
-                canvas,
-                obstacle_color,
-                pygame.Rect(
-                    pix_square_width * obstacle.x,
-                    pix_square_height * obstacle.y,
-                    pix_square_width,
-                    pix_square_height,
-                ),
             )
 
         # Actualizar la ventana y controlar la frecuencia de actualización en modo humano
@@ -194,13 +205,18 @@ class GolfEnv(gym.Env):
                 np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
             )
 
+    def _get_image(self, name):
+        image_path = os.path.dirname(
+            os.path.abspath(__file__.replace("python\games\golf", "resources\images\\" + name)))
+        target_image = pygame.image.load(image_path)
+        return target_image
+
     def close(self):
         if self.window is not None:
             pygame.display.quit()
             pygame.quit()
 
     def _get_random_location(self):
-        # TODO: Cambiar para que devuelva una de las tres localizaciones válidas
         return self.origin[np.random.randint(0, len(self.origin))]
 
 
