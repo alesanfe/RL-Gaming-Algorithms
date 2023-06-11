@@ -9,6 +9,9 @@ class PositionGolfBall:
     def calculate_distance(self, other):
         return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
 
+    def rotate(self):
+        return PositionGolfBall(self.y, self.x)
+
     def __sub__(self, other):
         if isinstance(other, PositionGolfBall):
             return PositionGolfBall(self.x - other.x, self.y - other.y)

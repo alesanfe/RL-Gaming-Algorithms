@@ -15,8 +15,8 @@ class GolfEnv(gym.Env):
     width: int = 10
     height: int = 15
     golfs_club = [
-        GolfClub(5,8, -3, 3),
-        GolfClub(1,3, -1, 1),
+        GolfClub(5, 8, -3, 3),
+        GolfClub(1, 3, -1, 1),
         GolfClub(4, 9, -2, 2),
         GolfClub(6, 7, 0, 4),
         GolfClub(3, 10, -1, 1)
@@ -24,63 +24,19 @@ class GolfEnv(gym.Env):
     target_location: np.array = PositionGolfBall(2, height - 1)
     agent_location: np.array = None
     terminated: bool = False
-    origin: np.array = np.array([
-        PositionGolfBall(9, 0), PositionGolfBall(9, 1), PositionGolfBall(9, 2)
-    ])
     window_size: int = 512
     render_mode: str = "human"
     window = None
     clock = None
-    lake = np.array([
-        PositionGolfBall(0, 0), PositionGolfBall(0, 1), PositionGolfBall(0, 2), PositionGolfBall(0, 3), PositionGolfBall(0, 4),
-        PositionGolfBall(1, 0), PositionGolfBall(1, 1), PositionGolfBall(1, 2), PositionGolfBall(1, 3), PositionGolfBall(1, 4),
-        PositionGolfBall(2, 0), PositionGolfBall(2, 1), PositionGolfBall(2, 2), PositionGolfBall(2, 3), PositionGolfBall(2, 4),
-        PositionGolfBall(3, 0), PositionGolfBall(3, 1), PositionGolfBall(3, 2), PositionGolfBall(3, 3), PositionGolfBall(3, 4),
-        PositionGolfBall(4, 0), PositionGolfBall(4, 1), PositionGolfBall(4, 2),
-        PositionGolfBall(5, 0), PositionGolfBall(5, 1),
-        PositionGolfBall(9, 8), PositionGolfBall(9, 9), PositionGolfBall(9, 10), PositionGolfBall(9, 11), PositionGolfBall(9, 12), PositionGolfBall(9, 13),
-        PositionGolfBall(8, 8), PositionGolfBall(8, 9), PositionGolfBall(8, 10), PositionGolfBall(8, 11), PositionGolfBall(8, 12), PositionGolfBall(8, 13),
-        PositionGolfBall(7, 8), PositionGolfBall(7, 9), PositionGolfBall(7, 10), PositionGolfBall(7, 11), PositionGolfBall(7, 12), PositionGolfBall(7, 13),
-        PositionGolfBall(6, 8), PositionGolfBall(6, 9), PositionGolfBall(6, 10), PositionGolfBall(6, 11), PositionGolfBall(6, 12), PositionGolfBall(6, 13),
-        PositionGolfBall(5, 8), PositionGolfBall(5, 9), PositionGolfBall(5, 10),
-        PositionGolfBall(4, 10),
-        PositionGolfBall(4, 11)
-    ])
-    sands = np.array([
-        PositionGolfBall(0, 5),
-        PositionGolfBall(1, 5),
-        PositionGolfBall(2, 5),
-        PositionGolfBall(3, 4),
-        PositionGolfBall(4, 4),
-        PositionGolfBall(4, 3),
-        PositionGolfBall(5, 2),
-        PositionGolfBall(5, 1),
-        PositionGolfBall(6, 0),
-        PositionGolfBall(9, 14),
-        PositionGolfBall(8, 14),
-        PositionGolfBall(7, 14),
-        PositionGolfBall(6, 13),
-        PositionGolfBall(5, 12),
-        PositionGolfBall(5, 11),
-        PositionGolfBall(4, 11),
-        PositionGolfBall(4, 10),
-        PositionGolfBall(4, 9),
-        PositionGolfBall(4, 8),
-        PositionGolfBall(4, 7),
-        PositionGolfBall(5, 7),
-        PositionGolfBall(6, 7),
-        PositionGolfBall(7, 7),
-        PositionGolfBall(8, 7),
-        PositionGolfBall(9, 7),
-    ])
-
 
     def __post_init__(self):
         self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
-        self.directions = [np.array([dx, dy]) for dx in range(-1, 2) for dy in range(-1, 2) if not (dx == 0 and dy == 0)]
-        self.field = np.array([PositionGolfBall(x, y) for x in range(self.width) for y in range(self.height) if PositionGolfBall(x, y) not in self.lake and PositionGolfBall(x, y) not in self.sands])
-        print(self.directions)
+        self.directions = [np.array([dx, dy]) for dx in range(-1, 2) for dy in range(-1, 2) if
+                           not (dx == 0 and dy == 0)]
 
+        self._read_camp()
+
+        # Comprobación de los parámetros
         assert self.render_mode is None or self.render_mode in self.metadata["render_modes"]
 
         # Definición del espacio de observación
@@ -89,18 +45,11 @@ class GolfEnv(gym.Env):
             "target": spaces.Box(0, np.array([self.width, self.height]) - 1, dtype=int),
         })
 
-        # self.observation_space = spaces.Dict({i: 0 for i in self.field})
-
         # Definición del espacio de acción
         self.action_space = spaces.Discrete(len(self.golfs_club) * len(self.directions))
 
     def reset(self):
-        print(
-            "Resetting environment..."
-        )
-
         self.agent_location = self._get_random_location()
-        print("Agent location: ", self.agent_location)
         self.terminated = False
         self.truncated = False
         return self._get_observation()
@@ -113,17 +62,16 @@ class GolfEnv(gym.Env):
         golf_club = self.golfs_club[palo]
         direction_vector = self.directions[direction]
 
-
         if self.agent_location == self.target_location:
             self.terminated = True
-            print("Viva a Juan Vi")
             reward = 100  # Recompensa por llegar al hoyo
-        elif self.agent_location in self.lake or self.agent_location not in self.field:
+        elif self.agent_location in self.lake or (
+                self.agent_location not in self.field and self.agent_location not in self.sands):
             self.truncated = True
             reward = -100  # Penalización por caer en el lago o fuera del campo
         elif self.agent_location in self.sands:
-            reward = -10 # Penalización por caer en arena
-            golf_club.modify = 0.5 # Modificar la fuerza del golpe
+            reward = -10  # Penalización por caer en arena
+            golf_club.modify = 0.5  # Modificar la fuerza del golpe
         else:
             reward = 0
 
@@ -148,14 +96,12 @@ class GolfEnv(gym.Env):
         return {"distance": self.agent_location.calculate_distance(self.target_location)}
 
     def _render_frame(self):
-        # Verificar si es necesario inicializar la ventana y el reloj en modo humano
         if self.window is None and self.render_mode == "human":
+            # Verificar si es necesario inicializar la ventana y el reloj en modo humano
             pygame.init()
             pygame.display.init()
             self.window = pygame.display.set_mode((self.window_size, self.window_size))
             self.clock = pygame.time.Clock()
-
-        # Obtiene la ruta absoluta al directorio raíz del proyecto
 
         # Crear el lienzo de dibujo
         canvas = pygame.Surface((self.window_size, self.window_size))
@@ -163,20 +109,33 @@ class GolfEnv(gym.Env):
         pix_square_width = self.window_size / self.width
         pix_square_height = self.window_size / self.height
 
+        # Dibujar el césped
         self._draw_grass(canvas, pix_square_height, pix_square_width)
 
+        # Dibujar el hoyo
         self._draw_hole(canvas, pix_square_height, pix_square_width)
 
+        # Dibujar el agua
         self._draw_water(canvas, pix_square_height, pix_square_width)
 
+        # Dibujar la arena
         self._draw_sand(canvas, pix_square_height, pix_square_width)
 
+        # Dibujar los rectángulos
         self._draw_rectangles(canvas, pix_square_height, pix_square_width)
 
+        # Dibujar la bola
         self._draw_ball(canvas, pix_square_height, pix_square_width)
 
-        # Actualizar la ventana y controlar la frecuencia de actualización en modo humano
         if self.render_mode == "human":
+            # Mostrar un mensaje en medio de la pantalla
+            if (self.terminated):
+                self._send_message(canvas, "Has llegado al hoyo")
+            elif (self.truncated):
+                self._send_message(canvas, "No has llegado al hoyo")
+
+
+            # Actualizar la ventana y controlar la frecuencia de actualización en modo humano
             self.window.blit(canvas, canvas.get_rect())
             pygame.event.pump()
             pygame.display.update()
@@ -186,6 +145,14 @@ class GolfEnv(gym.Env):
             return np.transpose(
                 np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
             )
+
+    def _send_message(self, canvas, message):
+        font_path = os.path.dirname(
+            os.path.abspath(__file__.replace("python\games\golf", "resources\\fonts\8-bit Arcade In.ttf")))
+        font = pygame.font.Font(font_path, 36)
+        text = font.render(message, True, (255, 255, 255))
+        text_rect = text.get_rect(center=(self.window_size // 2, self.window_size // 2))
+        canvas.blit(text, text_rect)
 
     def _draw_grass(self, canvas, pix_square_height, pix_square_width):
         # Dentro del bucle de dibujo:
@@ -278,7 +245,50 @@ class GolfEnv(gym.Env):
             pygame.quit()
 
     def _get_random_location(self):
-        print(self.origin[np.random.randint(0, len(self.origin))])
         return self.origin[np.random.randint(0, len(self.origin))]
+
+    def _read_camp(self):
+        # Obtener la ruta del archivo del campo de golf
+        camp_path = os.path.dirname(
+            os.path.abspath(__file__.replace("python\games\golf", "resources\golf_camp.txt")))
+
+        # Abrir el archivo en modo lectura
+        with open(camp_path, 'r') as f:
+            # Leer todas las líneas del archivo y almacenarlas en una lista
+            lines = f.readlines()
+
+            # Obtener el número de filas y columnas del campo de golf
+            self.height = len(lines) - 1
+            self.width = len(lines[0]) - 1
+
+            # Inicializar listas para almacenar las ubicaciones de los obstáculos y el campo
+            self.lake = []
+            self.sands = []
+            self.origin = []
+            self.field = []
+
+            # Recorrer cada línea del archivo
+            for i in range(self.height):
+                line = lines[i]
+
+                # Recorrer cada carácter de la línea
+                for j in range(self.width):
+                    char = line[j]
+                    position = PositionGolfBall(j, i)
+
+                    if char == '#':  # Por si se quiere añadir algún comentario en el archivo
+                        break
+                    elif char == 'W':  # Obstáculo de agua (lake)
+                        self.lake = np.append(self.lake, [position])
+                    elif char == 'S':  # Obstáculo de arena (sands)
+                        self.sands = np.append(self.sands, [position])
+                    elif char == 'O':  # Posición de origen (origin) y campo (field)
+                        self.field = np.append(self.field, [position])
+                        self.origin = np.append(self.origin, [position])
+                    elif char == 'E':  # Posición objetivo (target_location) y campo (field)
+                        self.field = np.append(self.field, [position])
+                        self.target_location = position
+                    elif char == 'G':  # Campo (field)
+                        self.field = np.append(self.field, [position])
 
 

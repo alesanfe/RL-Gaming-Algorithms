@@ -26,8 +26,6 @@ class PolíticaVoraz:
         """
         if máscara is None:
             máscara = numpy.full(espacio_de_acciones.n, 1, dtype=numpy.int8)
-        print(estado)
-        print(tabla_q.keys())
         valores_acciones = tabla_q[estado]
         máscara_mejores_acciones = (
                 valores_acciones == max(valores_acciones)
