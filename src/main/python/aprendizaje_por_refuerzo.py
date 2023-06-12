@@ -98,7 +98,7 @@ class Montecarlo_IE:
         self.factor_de_descuento = factor_de_descuento
         self.primera_visita = primera_visita
         self.política_exploratoria = PolíticaVoraz()
-        self.statistics = EnvironmentStatistic()
+        self.statistics = EnvironmentStatistic(entorno)
         self.inicializa_tablas_q_y_r()
 
     def inicializa_tablas_q_y_r(self):
@@ -161,7 +161,7 @@ class Montecarlo_IE:
             self.statistics.continue_episode(recompensa)
 
             if terminado or truncado:
-                self.statistics.add_episode()
+                self.statistics.add_episode(estado_siguiente)
                 break
             estado_actual = estado_siguiente
             acción = self.elige_acción(estado_actual, info)
@@ -217,7 +217,7 @@ class Q_Learning:
         self.tasa_de_aprendizaje = tasa_de_aprendizaje
         self.factor_de_descuento = factor_de_descuento
         self.política_exploratoria = política_exploratoria
-        self.statistics = EnvironmentStatistic()
+        self.statistics = EnvironmentStatistic(entorno)
         self.inicializa_tabla_q()
 
     def inicializa_tabla_q(self):
@@ -292,7 +292,7 @@ class Q_Learning:
             self.statistics.continue_episode(recompensa)
 
             if terminado or truncado:
-                self.statistics.add_episode()
+                self.statistics.add_episode(estado_siguiente)
                 break
 
             estado_actual = estado_siguiente

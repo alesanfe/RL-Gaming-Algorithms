@@ -25,7 +25,7 @@ class GolfEnv(gym.Env):
     agent_location: np.array = None
     terminated: bool = False
     window_size: int = 512
-    render_mode: str = "human"
+    render_mode: str = None
     window = None
     clock = None
 

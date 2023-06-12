@@ -1,12 +1,18 @@
 import time
+from dataclasses import dataclass
 
+import gym
 import numpy
 import matplotlib.pyplot as plt
 
 
+@dataclass
 class EnvironmentStatistic:
+    env: gym.Env
+
     def reset(self):
-        self.episode_data = {'episodes': [], 'total': {'cumulative_rewards': 0, 'episode_lengths': []}}
+        self.episode_data = {'episodes': [], 'total': {'cumulative_rewards': 0, 'episode_lengths': [], 'duration': 0,
+                                                       'success_episodes': 0, 'failed_episodes': 0}}
         self.episode_reward = 0
         self.episode_length = 0
         self.time = time.time()
@@ -15,37 +21,62 @@ class EnvironmentStatistic:
     def reset_episode(self):
         self.episode_reward = 0
         self.episode_length = 0
+        self.time = time.time()
 
     def continue_episode(self, reward):
         self.episode_reward += reward
         self.episode_length += 1
 
 
-    def add_episode(self):
+    def add_episode(self, next_state):
         self.episode_data['episodes'].append(
-            {'cumulative_reward': self.episode_reward, 'episode_length': self.episode_length})
+            {'cumulative_reward': self.episode_reward, 'episode_length': self.episode_length, "time": time.time() - self.time})
         self.episode_data['total']['cumulative_rewards'] += self.episode_reward
         self.episode_data['total']['episode_lengths'].append(self.episode_length)
-        self.episode_data['total']['duration'] = time.time() - self.time
+        self.episode_data['total']['duration'] += time.time() - self.time
+        if next_state in self.get_terminal_states():
+            self.episode_data['total']['success_episodes'] += 1
+        else:
+            self.episode_data['total']['failed_episodes'] += 1
+
+    def get_terminal_states(self):
+
+        posible_states = range(self.env.observation_space.n)
+
+        # Inicializar una lista para almacenar los estados terminales
+        terminal_states = set()
+
+        # Comprobar cada estado si es terminal o no
+        if hasattr(self.env, 'target_location'):
+            return [self.env.target_location]
+
+        for state in posible_states:
+            for action in range(self.env.action_space.n):
+                transactions = self.env.P[state][action]
+                for transaction in transactions:
+                    _, next_state, reward, _ = transaction
+                    if reward > 0:
+                        terminal_states.add(next_state)
+                        break
+
+        return terminal_states
 
     def calculate_statistics(self):
         num_episodes = len(self.episode_data['episodes'])
         cumulative_rewards = [episode_data['cumulative_reward'] for episode_data in self.episode_data['episodes']]
         episode_lengths = [episode_data['episode_length'] for episode_data in self.episode_data['episodes']]
+        episode_time = [episode_data['time'] for episode_data in self.episode_data['episodes']]
 
         mean_reward = numpy.mean(cumulative_rewards)
+        mean_time = numpy.mean(episode_time)
         reward_std = numpy.std(cumulative_rewards)
         mean_length = numpy.mean(episode_lengths)
         length_std = numpy.std(episode_lengths)
         max_reward = numpy.max(cumulative_rewards)
         min_reward = numpy.min(cumulative_rewards)
-        num_success_episodes = len([reward for reward in cumulative_rewards if reward > 0])
-        success_rate = (num_success_episodes / num_episodes) * 100
-
-        success_rewards = [reward for reward in cumulative_rewards if reward > 0]
-        failed_rewards = [reward for reward in cumulative_rewards if reward <= 0]
-        mean_success_reward = numpy.mean(success_rewards) if success_rewards != [] else 0
-        mean_failed_reward = numpy.mean(failed_rewards) if failed_rewards != [] else 0
+        num_success_episodes = self.episode_data['total']['success_episodes']
+        success_rate = num_success_episodes / num_episodes
+        failed_rate = 1 - success_rate
         time = self.episode_data['total']['duration']
 
         statistics = {
@@ -57,33 +88,34 @@ class EnvironmentStatistic:
             'max_reward': max_reward,
             'min_reward': min_reward,
             'num_success_episodes': num_success_episodes,
-            'success_rate': success_rate,
-            'mean_success_reward': mean_success_reward,
-            'mean_failed_reward': mean_failed_reward,
-            'time': time
+            'success_rate': success_rate*100,
+            'failed_rate': failed_rate*100,
+            'time': time,
+            'mean_time': mean_time
         }
 
         return statistics
 
-    def _plot_graph(self, data, ylabel):
+    def _plot_graph(self, data, ylabel, title):
         plt.plot(data)
         plt.ylabel(ylabel)
         plt.xlabel('Episode')
+        plt.title(title)
         plt.show()
 
-    def get_graph_reward(self):
+    def get_graph_reward(self, title):
         data = [episode['cumulative_reward'] for episode in self.episode_data['episodes']]
-        self._plot_graph(data, 'Reward')
+        self._plot_graph(data, 'Reward', title)
 
-    def get_graph_length(self):
+    def get_graph_length(self, title):
         data = [episode['episode_length'] for episode in self.episode_data['episodes']]
-        self._plot_graph(data, 'Length')
+        self._plot_graph(data, 'Length', title)
 
-    def get_graph_time(self):
-        data = [episode['duration'] for episode in self.episode_data['episodes']]
-        self._plot_graph(data, 'Duration')
+    def get_graph_time(self, title):
+        data = [episode['time'] for episode in self.episode_data['episodes']]
+        self._plot_graph(data, 'Duration', title)
 
-    def get_graph_statistics(self):
+    def get_graph_statistics(self, title):
         statistics = self.calculate_statistics()
 
         # Plotting statistics
@@ -105,4 +137,5 @@ class EnvironmentStatistic:
         plt.legend(loc='upper right')
         plt.xlabel('Reward')
         plt.ylabel('Frequency')
+        plt.title(title)
         plt.show()

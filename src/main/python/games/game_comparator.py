@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import gym
 
 from src.main.python.games.game import Game
+from src.main.python.games.golf.golf_env import GolfEnv
 
 
 @dataclass
@@ -30,16 +31,27 @@ class GameComparator:
         data = self._get_data_from_stats(results)
         self._print_data("casos", data)
 
-    def compare_diffrent_environments(self, environments=['FrozenLake-v1', 'Taxi-v3'], algorithm='Montecarlo',
+    def compare_different_environments(self, environments=['FrozenLake-v1', 'Taxi-v3', "Golf-v0"], algorithm='Montecarlo',
                                       epsilon=0.1, alpha=0.1, gamma=0.9):
         results = {}
         for env in environments:
-            environment = gym.make(env, render_mode='human')
+            if env == 'Golf-v0':
+                environment = GolfEnv()
+            else:
+                environment = gym.make(env, render_mode='human')
             self.game.environment = environment
             self._execute_algorithm(algorithm, alpha, env, epsilon, gamma, results)
 
         data = self._get_data_from_stats(results)
         self._print_data("entornos", data)
+
+    def get_graphs(self, title):
+        statistics = self.game.agent.statistics
+        statistics.get_graph_reward(f"{title} - Reward")
+        statistics.get_graph_length(f"{title} - Length")
+        statistics.get_graph_time(f"{title} - Time")
+        statistics.get_graph_statistics(f"{title} - Statistics")
+
 
     def _execute_algorithm(self, algorithm, alpha, env, epsilon, gamma, results):
         if algorithm == 'Montecarlo':
@@ -68,15 +80,25 @@ class GameComparator:
 
     def _get_data_from_stats(self, results):
         """Obtiene los datos de las estadísticas de un entorno."""
-        metrics = ['mean_reward', 'mean_length', 'success_rate', 'mean_success_reward', 'mean_failed_reward', 'time',
-                   'num_episodes']
+        metrics = ['mean_reward',
+            'reward_std',
+            'mean_length',
+            'length_std',
+            'num_episodes',
+            'max_reward',
+            'min_reward',
+            'num_success_episodes',
+            'success_rate',
+            'failed_rate',
+            'time',
+            'mean_time']
         data = {}
 
         for metric in metrics:
             greater = self._get_greater(metric, results)
             lower = self._get_lower(metric, results)
-            data["greater_" + metric] = self._into_data(greater, results, metric)
-            data["lower_" + metric] = self._into_data(lower, results, metric)
+            data["greater_" + metric] = self._into_data(metric, results,greater)
+            data["lower_" + metric] = self._into_data(metric, results, lower)
 
         return data
 
@@ -86,10 +108,9 @@ class GameComparator:
         print(f"\nComparación de {topic}:\n")
         print(f"Mejor {without_last_letter} por recompensa media: " + data['greater_mean_reward'])
         print(f"{first_upper} con menor longitud media de episodios: " + data['lower_mean_length'])
-        print(f"Mejor {without_last_letter} por porcentaje de éxito: " + data['greater_success_rate'])
-        print(f"{first_upper} con mayor porcentaje de recompensas exitosas: " + data['greater_mean_success_reward'])
-        print(f"{first_upper} con mayor porcentaje de recompensas fallidas: " + data['greater_mean_failed_reward'])
-        print(f"Mejor {without_last_letter} por tiempo de ejecución: " + data['greater_time'])
-        print(f"Mejor {without_last_letter} por número de episodios: " + data['lower_num_episodes'])
+        print(f"{first_upper} con mayor porcentaje de recompensas exitosas: " + data['greater_success_rate'])
+        print(f"{first_upper} con mayor porcentaje de recompensas fallidas: " + data['greater_failed_rate'])
+        print(f"Mejor {without_last_letter} por tiempo de ejecución: " + data['lower_time'])
+        print(f"Mejor {without_last_letter} por tiempo de ejecución por episodio: " + data['lower_mean_time'])
         print(f"Mejor {without_last_letter} por máxima recompensa alcanzada: " + data['greater_max_reward'])
         print(f"Mejor {without_last_letter} por mínima recompensa alcanzada: " + data['lower_min_reward'])

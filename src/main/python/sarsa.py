@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import numpy
 
 from src.main.python.environment_statistic import EnvironmentStatistic
@@ -25,14 +27,16 @@ class Sarsa:
         self.discount_factor = discount_factor
         self.learning_factor = learning_factor
         self.export_policy = export_policy
-        self.statistics = EnvironmentStatistic()
+        self.statistics = EnvironmentStatistic(env)
         self.initialize_q_table()
 
     def initialize_q_table(self):
         """Inicializa la tabla Q con valores aleatorios."""
-        self.q_table = numpy.random.uniform(low=0, high=1, size=(self.env.observation_space.n, self.env.action_space.n))
+        cantidad_acciones = self.env.action_space.n
+        self.q_table = defaultdict(lambda: numpy.random.uniform(0, 1, cantidad_acciones))
         # Para el estado terminal, las acciones tienen valor 0
-        self.q_table[self.env.observation_space.n - 1] = 0
+        for estado in self.statistics.get_terminal_states():
+            self.q_table[estado] = numpy.zeros(cantidad_acciones)
 
     def update_q_table(self, state, action, reward, next_state, next_action):
         """Actualiza el valor de una acción para un estado.
@@ -76,17 +80,15 @@ class Sarsa:
         while True:
             action = self.choose_action(current_state, info)
             next_state, reward, truncated, done, info = self.env.step(action)
-            self.env.render()
+
             next_action = self.choose_action(next_state, info)
 
             self.update_q_table(current_state, action, reward, next_state, next_action)
 
-
-
             self.statistics.continue_episode(reward)
 
             if done or truncated:
-                self.statistics.add_episode()
+                self.statistics.add_episode(next_state)
                 break
 
             current_state = next_state
