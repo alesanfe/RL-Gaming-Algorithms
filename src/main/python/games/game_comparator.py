@@ -38,7 +38,7 @@ class GameComparator:
             if env == 'Golf-v0':
                 environment = GolfEnv()
             else:
-                environment = gym.make(env, render_mode='human')
+                environment = gym.make(env)
             self.game.environment = environment
             self._execute_algorithm(algorithm, alpha, env, epsilon, gamma, results)
 

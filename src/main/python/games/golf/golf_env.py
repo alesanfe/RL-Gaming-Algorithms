@@ -147,8 +147,13 @@ class GolfEnv(gym.Env):
             )
 
     def _send_message(self, canvas, message):
-        font_path = os.path.dirname(
-            os.path.abspath(__file__.replace("python\games\golf", "resources\\fonts\8-bit Arcade In.ttf")))
+        path = os.path.dirname(os.path.abspath(__file__))
+        if "/" in path:
+            font_path = os.path.dirname(
+                os.path.abspath(__file__.replace("python/games/golf", "resources/fonts/8-bit Arcade In.ttf")))
+        else:
+            font_path = os.path.dirname(
+                os.path.abspath(__file__.replace("python\games\golf", "resources\\fonts\8-bit Arcade In.ttf")))
         font = pygame.font.Font(font_path, 36)
         text = font.render(message, True, (255, 255, 255))
         text_rect = text.get_rect(center=(self.window_size // 2, self.window_size // 2))
@@ -234,8 +239,13 @@ class GolfEnv(gym.Env):
                     (pix_square_width * self.agent_location.x, pix_square_height * self.agent_location.y))
 
     def _get_image(self, name):
-        image_path = os.path.dirname(
-            os.path.abspath(__file__.replace("python\games\golf", "resources\images\\" + name)))
+        path = os.path.dirname(os.path.abspath(__file__))
+        if "/" in path:
+            image_path = os.path.dirname(
+                os.path.abspath(__file__.replace("python/games/golf", "resources/images/" + name)))
+        else:
+            image_path = os.path.dirname(
+                os.path.abspath(__file__.replace("python\games\golf", "resources\images\\" + name)))
         target_image = pygame.image.load(image_path)
         return target_image
 
@@ -249,8 +259,13 @@ class GolfEnv(gym.Env):
 
     def _read_camp(self):
         # Obtener la ruta del archivo del campo de golf
-        camp_path = os.path.dirname(
-            os.path.abspath(__file__.replace("python\games\golf", "resources\golf_camp.txt")))
+        path = os.path.dirname(os.path.abspath(__file__))
+        if "/" in path:
+            camp_path = os.path.dirname(
+                os.path.abspath(__file__.replace("python/games/golf", "resources/golf_camp.txt")))
+        else:
+            camp_path = os.path.dirname(
+                os.path.abspath(__file__.replace("python\games\golf", "resources\golf_camp.txt")))
 
         # Abrir el archivo en modo lectura
         with open(camp_path, 'r') as f:

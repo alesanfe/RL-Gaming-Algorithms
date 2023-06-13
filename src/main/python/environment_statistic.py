@@ -41,14 +41,14 @@ class EnvironmentStatistic:
 
     def get_terminal_states(self):
 
+        # Comprobar cada estado si es terminal o no
+        if hasattr(self.env, 'target_location'):
+            return [self.env.target_location]
+
         posible_states = range(self.env.observation_space.n)
 
         # Inicializar una lista para almacenar los estados terminales
         terminal_states = set()
-
-        # Comprobar cada estado si es terminal o no
-        if hasattr(self.env, 'target_location'):
-            return [self.env.target_location]
 
         for state in posible_states:
             for action in range(self.env.action_space.n):

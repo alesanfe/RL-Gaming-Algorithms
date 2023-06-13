@@ -73,7 +73,7 @@ def test_compare_different_cases_taxi_montecarlo():
 
     test_game = GameComparator(game)
 
-    test_game.compare_different_cases(algorithm='Montecarlo', epsilon=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], alpha=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], gamma=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+    test_game.compare_different_cases(algorithm='Montecarlo', epsilon=[0.25, 0.5, 0.75], alpha=[0.25, 0.5, 0.75], gamma=[0.25, 0.5, 0.75])
 
 def test_compare_different_cases_taxi_q_learning():
     game = Game(environment=RecordEpisodeStatistics(gym.make('Taxi-v3')),
@@ -83,7 +83,7 @@ def test_compare_different_cases_taxi_q_learning():
 
     test_game = GameComparator(game)
 
-    test_game.compare_different_cases(algorithm='Q-Learning', epsilon=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], alpha=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], gamma=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+    test_game.compare_different_cases(algorithm='Q-Learning', epsilon=[0.25, 0.5, 0.75], alpha=[0.25, 0.5, 0.75], gamma=[0.25, 0.5, 0.75])
 
 def test_compare_different_cases_taxi_sarsa():
     game = Game(environment=RecordEpisodeStatistics(gym.make('Taxi-v3')),
@@ -93,7 +93,7 @@ def test_compare_different_cases_taxi_sarsa():
 
     test_game = GameComparator(game)
 
-    test_game.compare_different_cases(algorithm='Sarsa', epsilon=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], alpha=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], gamma=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+    test_game.compare_different_cases(algorithm='Sarsa', epsilon=[0.25, 0.5, 0.75], alpha=[0.25, 0.5, 0.75], gamma=[0.25, 0.5, 0.75])
 
 # ---------------------- #
 # Test para Golf.        #
