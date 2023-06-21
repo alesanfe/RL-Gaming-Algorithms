@@ -48,10 +48,10 @@ class Sarsa:
         next_state -- Siguiente estado.
         next_action -- Siguiente acción.
         """
-        q_value = self.q_table[state, action]
-        next_q_value = self.q_table[next_state, next_action]
+        q_value = self.q_table[state][action]
+        next_q_value = self.q_table[next_state][next_action]
         new_q_value = q_value + self.learning_factor * (reward + self.discount_factor * next_q_value - q_value)
-        self.q_table[state, action] = new_q_value
+        self.q_table[state][action] = new_q_value
 
     def choose_action(self, state, info):
         """Elige una acción para un estado dado.
@@ -77,8 +77,9 @@ class Sarsa:
         current_state, info = self.env.reset()
         self.statistics.reset_episode()
 
+        action = self.choose_action(current_state, info)
+
         while True:
-            action = self.choose_action(current_state, info)
             next_state, reward, truncated, done, info = self.env.step(action)
 
             next_action = self.choose_action(next_state, info)
@@ -92,6 +93,7 @@ class Sarsa:
                 break
 
             current_state = next_state
+            action = next_action
 
     def train(self, num_episodes):
         """Ejecuta el algoritmo durante un cierto número de episodios.
@@ -107,4 +109,24 @@ class Sarsa:
     def calculate_statistics(self):
         """Calcula las estadísticas a partir de los datos de los episodios."""
         return self.statistics.calculate_statistics()
+
+    def get_policy_for_state(self, state):
+        """Devuelve la política elegida para un estado.
+
+        Argumentos:
+        state -- Estado para el que se desea obtener la política.
+        """
+        q_values = self.q_table[state]
+        max_q_value = numpy.max(q_values)
+        best_actions = numpy.where(q_values == max_q_value)[0]
+        policy = numpy.zeros_like(q_values)
+        policy[best_actions] = 1.0 / len(best_actions)
+        return policy
+
+    def get_policy(self):
+        """Devuelve la política elegida para todos los estados."""
+        policy = {}
+        for state in self.q_table.keys():
+            policy[state] = self.get_policy_for_state(state)
+        return policy
 

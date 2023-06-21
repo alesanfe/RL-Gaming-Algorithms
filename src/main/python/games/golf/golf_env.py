@@ -46,7 +46,10 @@ class GolfEnv(gym.Env):
         })
 
         # Definición del espacio de acción
-        self.action_space = spaces.Discrete(len(self.golfs_club) * len(self.directions))
+        actions = 0
+        for golf_club in self.golfs_club:
+            actions += len(self.directions) * (golf_club.max_force - golf_club.min_force + 1)
+        self.action_space = spaces.Discrete(actions)
 
     def reset(self):
         self.agent_location = self._get_random_location()
@@ -56,11 +59,15 @@ class GolfEnv(gym.Env):
 
     def step(self, action):
 
-        direction = action % len(self.directions)
-        palo = action // len(self.directions)
+        club_index, direction_index, force_index = self.take_action(action)
 
-        golf_club = self.golfs_club[palo]
-        direction_vector = self.directions[direction]
+        golf_club = self.golfs_club[club_index]
+        direction_vector = self.directions[direction_index]
+
+        if self.render_mode == "human":
+            self._render_frame()
+
+        self.agent_location = golf_club.hit(self.agent_location, direction_vector, force_index)
 
         if self.agent_location == self.target_location:
             self.terminated = True
@@ -73,24 +80,47 @@ class GolfEnv(gym.Env):
             reward = -10  # Penalización por caer en arena
             golf_club.modify = 0.5  # Modificar la fuerza del golpe
         else:
-            reward = 0
-
-        if self.render_mode == "human":
-            self._render_frame()
-
-        self.agent_location = golf_club.hit(self.agent_location, direction_vector)
+            reward = -5  # Penalización por caer en el césped
 
         return self.agent_location, reward, self.terminated, self.truncated, self._get_info()
+
+    def take_action(self, action):
+        num_clubs = len(self.golfs_club)
+        num_directions = len(self.directions)
+
+        # Obtener el índice de la dirección
+        direction_index = action % num_directions
+
+        # Calcular el índice del palo
+        club_index = (action // num_directions) % num_clubs
+
+        # Calcular el índice de la fuerza
+        force_index = (action // (num_directions * num_clubs))
+        return club_index, direction_index, force_index
 
     def render(self):
         if self.render_mode == "rgb_array":
             return self._render_frame()
 
     def _get_observation(self):
-        return {
-            "agent": self.agent_location,
-            "target": self.target_location
+        agent_position = self.agent_location
+        target_position = self.target_location
+
+        observation = {
+            "agent": agent_position,
+            "target": target_position,
+            "distance_to_target": np.linalg.norm(agent_position - target_position),
+            "club_information": []
         }
+
+        for golf_club in self.golfs_club:
+            club_info = {
+                "min_force": golf_club.min_force,
+                "max_force": golf_club.max_force
+            }
+            observation["club_information"].append(club_info)
+
+        return observation
 
     def _get_info(self):
         return {"distance": self.agent_location.calculate_distance(self.target_location)}
@@ -133,7 +163,6 @@ class GolfEnv(gym.Env):
                 self._send_message(canvas, "Has llegado al hoyo")
             elif (self.truncated):
                 self._send_message(canvas, "No has llegado al hoyo")
-
 
             # Actualizar la ventana y controlar la frecuencia de actualización en modo humano
             self.window.blit(canvas, canvas.get_rect())
@@ -305,5 +334,3 @@ class GolfEnv(gym.Env):
                         self.target_location = position
                     elif char == 'G':  # Campo (field)
                         self.field = np.append(self.field, [position])
-
-

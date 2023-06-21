@@ -1,4 +1,5 @@
 import gym
+import numpy
 from gym.wrappers import RecordEpisodeStatistics
 
 from src.main.python.games.Game import Game
@@ -28,5 +29,35 @@ class Taxi(Game):
     def resolve_taxi_by_double_q_learning(self, epsilon=0.1, alpha=0.1, gamma=0.99):
         """Resolución del entorno Taxi utilizando Double Q-Learning."""
         return self.resolve_by_double_q_learning(epsilon, alpha, gamma)
+
+    def show_policy(self, agent):
+        action_symbols = {
+            0: "↓",  # Mover hacia el sur (abajo)
+            1: "↑",  # Mover hacia el norte (arriba)
+            2: "→",  # Mover hacia el este (derecha)
+            3: "←",  # Mover hacia el oeste (izquierda)
+            4: "P",  # Recoger pasajero
+            5: "D"  # Dejar pasajero
+        }
+
+        policy = agent.get_policy()
+        env = self.environment
+        num_states = env.observation_space.n
+
+        # Crear el tablero con la representación gráfica de la política
+        policy_board = numpy.empty((env.nrow, env.ncol), dtype="<U1")
+        for state in range(num_states):
+            row, col, _, _ = env.decode(state)
+            if env.desc[row, col] == b' ':
+                # Si la celda es un espacio vacío, asignar el símbolo correspondiente a la acción elegida en la política
+                action = numpy.argmax(policy[state])
+                policy_board[row, col] = action_symbols[action]
+            else:
+                # Si la celda es una pared, taxi, pasajero o destino, mantener su valor original
+                policy_board[row, col] = env.desc[row, col].decode()
+
+        # Mostrar el tablero con la política
+        for row in policy_board:
+            print(" ".join(row))
 
 

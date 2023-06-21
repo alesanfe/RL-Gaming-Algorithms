@@ -12,8 +12,8 @@ class GolfClub:
     max_precision: int
     modify: float = 1
 
-    def hit(self, origin, direction):
-        force = random.randint(int(self.min_force*self.modify), int(self.max_force*self.modify))
+    def hit(self, origin, direction, force):
+        force = self.min_force + force
         precision = random.randint(int(self.min_precision/self.modify), int(self.max_precision/self.modify))
 
         x = origin.x + direction[0] * (force + precision)
