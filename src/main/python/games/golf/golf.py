@@ -28,6 +28,9 @@ class Golf(Game):
         """Resolución del entorno Golf utilizando Sarsa."""
         return self.resolve_by_sarsa(epsilon, alpha, gamma)
 
+    def resolve_golf_by_double_q_learning(self, epsilon, alpha, gamma):
+        return self.resolve_by_double_q_learning(epsilon, alpha, gamma)
+
     def show_policy(self, agent):
         direction_symbols = {
             0: "↓",  # Mover hacia el sur (abajo)
@@ -54,3 +57,5 @@ class Golf(Game):
                     action_str = f"({club_index}, {self.direction_symbols[direction_index]}, {env.golfs_club[club_index] + force_index})"
                     print(action_str, end=" ")
             print()
+
+

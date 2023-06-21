@@ -2,7 +2,7 @@ import gym
 import numpy
 from gym.wrappers import RecordEpisodeStatistics
 
-from src.main.python.games.Game import Game
+from src.main.python.games.game import Game
 
 class Taxi(Game):
     """

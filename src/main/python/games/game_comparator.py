@@ -10,7 +10,7 @@ class GameComparator:
     def __init__(self, game: Game):
         self.game = game
 
-    def compare_different_algorithms(self, algorithms=['Montecarlo', 'Q-Learning', 'Sarsa'], epsilon=0.1, alpha=0.1,
+    def compare_different_algorithms(self, algorithms=['Montecarlo', 'Q-Learning', 'Sarsa', 'Double Q-Learning'], epsilon=0.1, alpha=0.1,
                                      gamma=0.9):
         results = {}
         for alg in algorithms:
@@ -22,28 +22,40 @@ class GameComparator:
     def compare_different_cases(self, algorithm='Montecarlo', epsilon=[0.1, 0.2, 0.3, 0.4, 0.5],
                                 alpha=[0.1, 0.2, 0.3, 0.4, 0.5], gamma=[0.9, 0.8, 0.7, 0.6, 0.5]):
         results = {}
+        better_agent = None
+        better_success_rate = None
         for eps in epsilon:
             for alp in alpha:
                 for gam in gamma:
                     key = "Epsilon: " + str(eps) + " - Alpha: " + str(alp) + " - Gamma: " + str(gam)
-                    self._execute_algorithm(algorithm, alp, key, eps, gam, results)
-
+                    agent = self._execute_algorithm(algorithm, alp, key, eps, gam, results)
+                    success_rate = agent.statistics.calculate_statistics()['success_rate']
+                    if better_agent is None or success_rate > better_success_rate:
+                        better_agent = agent
+                        better_success_rate = success_rate
         data = self._get_data_from_stats(results)
         self._print_data("casos", data)
+        return better_agent
 
     def compare_different_environments(self, environments=['FrozenLake-v1', 'Taxi-v3', "Golf-v0"], algorithm='Montecarlo',
                                       epsilon=0.1, alpha=0.1, gamma=0.9):
         results = {}
+        better_agent = None
+        better_success_rate = None
         for env in environments:
             if env == 'Golf-v0':
                 environment = GolfEnv()
             else:
                 environment = gym.make(env)
             self.game.environment = environment
-            self._execute_algorithm(algorithm, alpha, env, epsilon, gamma, results)
-
+            agent = self._execute_algorithm(algorithm, alpha, env, epsilon, gamma, results)
+            success_rate = agent.statistics.calculate_statistics()['success_rate']
+            if better_agent is None or success_rate > better_success_rate:
+                better_agent = agent
+                better_success_rate = success_rate
         data = self._get_data_from_stats(results)
         self._print_data("entornos", data)
+        return better_agent
 
     def get_graphs(self, title):
         statistics = self.game.agent.statistics
@@ -55,16 +67,20 @@ class GameComparator:
 
     def _execute_algorithm(self, algorithm, alpha, env, epsilon, gamma, results):
         if algorithm == 'Montecarlo':
-            agent_montecarlo = self.game.resolve_by_montecarlo()
-            results[env] = agent_montecarlo.calculate_statistics()
+            agent = self.game.resolve_by_montecarlo()
+            results[env] = agent.calculate_statistics()
         elif algorithm == 'Q-Learning':
-            agent_q_learning = self.game.resolve_by_q_learning(epsilon)
-            results[env] = agent_q_learning.calculate_statistics()
+            agent = self.game.resolve_by_q_learning(epsilon)
+            results[env] = agent.calculate_statistics()
         elif algorithm == 'Sarsa':
-            agent_sarsa = self.game.resolve_by_sarsa(epsilon, alpha, gamma)
-            results[env] = agent_sarsa.calculate_statistics()
+            agent = self.game.resolve_by_sarsa(epsilon, alpha, gamma)
+            results[env] = agent.calculate_statistics()
+        elif algorithm == 'Double Q-Learning':
+            agent = self.game.resolve_by_double_q_learning(epsilon, alpha, gamma)
+            results[env] = agent.calculate_statistics()
         else:
             raise ValueError("Algoritmo no encontrado")
+        return agent
 
     def _is_some_data(self, key, results):
         return len(set([results[x][key] for x in results])) != 1

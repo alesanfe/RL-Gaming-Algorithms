@@ -198,7 +198,7 @@ class Montecarlo_IE:
         Argumentos:
         state -- Estado para el que se desea obtener la política.
         """
-        q_values = self.q_table[state]
+        q_values = self.tabla_q[state]
         max_q_value = numpy.max(q_values)
         best_actions = numpy.where(q_values == max_q_value)[0]
         policy = numpy.zeros_like(q_values)
@@ -208,7 +208,7 @@ class Montecarlo_IE:
     def get_policy(self):
         """Devuelve la política elegida para todos los estados."""
         policy = {}
-        for state in self.q_table.keys():
+        for state in self.tabla_q.keys():
             policy[state] = self.get_policy_for_state(state)
         return policy
 
@@ -338,7 +338,7 @@ class Q_Learning:
         Argumentos:
         state -- Estado para el que se desea obtener la política.
         """
-        q_values = self.q_table[state]
+        q_values = self.tabla_q[state]
         max_q_value = numpy.max(q_values)
         best_actions = numpy.where(q_values == max_q_value)[0]
         policy = numpy.zeros_like(q_values)
@@ -348,6 +348,6 @@ class Q_Learning:
     def get_policy(self):
         """Devuelve la política elegida para todos los estados."""
         policy = {}
-        for state in self.q_table.keys():
+        for state in self.tabla_q.keys():
             policy[state] = self.get_policy_for_state(state)
         return policy
